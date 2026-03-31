@@ -3,7 +3,7 @@ import { Command } from 'cmdk';
 import { 
   Search, 
   Plus, 
-  History, 
+  History as HistoryIcon, 
   Sparkles, 
   Save, 
   FileText, 
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import { useTranslation } from '../contexts/LanguageContext';
 
 interface CommandMenuProps {
   isOpen: boolean;
@@ -40,6 +41,7 @@ export function CommandMenu({
   projects,
   onSelectProject
 }: CommandMenuProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
   // F1.3: Keyboard shortcut (Ctrl+K) is registered in App.tsx.
@@ -68,7 +70,7 @@ export function CommandMenu({
                 <Search className="w-5 h-5 text-neutral-400 mr-3" />
                 <Command.Input
                   autoFocus
-                  placeholder="Hvad vil du gøre? (Søg projekter, skift faner, kør AI...)"
+                  placeholder={t('command_menu.placeholder')}
                   className="flex-1 h-14 bg-transparent border-none outline-none text-neutral-900 placeholder:text-neutral-400 text-lg"
                   value={search}
                   onValueChange={setSearch}
@@ -80,25 +82,25 @@ export function CommandMenu({
 
               <Command.List className="overflow-y-auto p-2 scrollbar-hide">
                 <Command.Empty className="py-12 text-center text-neutral-400 text-sm">
-                  Ingen resultater fundet for "{search}"
+                  {t('command_menu.empty').replace('{n}', search)}
                 </Command.Empty>
 
-                <Command.Group heading="Navigation" className="px-2 py-2 text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
-                  <Item onSelect={() => { onSelectTab('spec'); setIsOpen(false); }} icon={<FileText size={16} />} label="SPEC.md (Vision)" shortcut="S" />
-                  <Item onSelect={() => { onSelectTab('plan'); setIsOpen(false); }} icon={<ListIcon size={16} />} label="PLAN.md (Roadmap)" shortcut="P" />
+                <Command.Group heading={t('command_menu.nav_heading')} className="px-2 py-2 text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                  <Item onSelect={() => { onSelectTab('spec'); setIsOpen(false); }} icon={<FileText size={16} />} label={`SPEC.md (${t('editor.tabs.spec')})`} shortcut="S" />
+                  <Item onSelect={() => { onSelectTab('plan'); setIsOpen(false); }} icon={<ListIcon size={16} />} label={`PLAN.md (${t('editor.tabs.plan')})`} shortcut="P" />
                   <Item onSelect={() => { onSelectTab('architecture'); setIsOpen(false); }} icon={<Layers size={16} />} label="ARCHITECTURE.md" shortcut="A" />
-                  <Item onSelect={() => { onSelectTab('state'); setIsOpen(false); }} icon={<History size={16} />} label="STATE.md (Log)" shortcut="L" />
-                  <Item onSelect={() => { onSelectTab('master-prompt'); setIsOpen(false); }} icon={<Zap size={16} />} label="Master Prompt" shortcut="M" />
+                  <Item onSelect={() => { onSelectTab('state'); setIsOpen(false); }} icon={<HistoryIcon size={16} />} label={`STATE.md (${t('editor.tabs.state')})`} shortcut="L" />
+                  <Item onSelect={() => { onSelectTab('master-prompt'); setIsOpen(false); }} icon={<Zap size={16} />} label={t('editor.tabs.master_prompt')} shortcut="M" />
                 </Command.Group>
 
-                <Command.Group heading="Handlinger" className="px-2 py-2 text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-2">
-                  <Item onSelect={() => { onAction('new-project'); setIsOpen(false); }} icon={<Plus size={16} />} label="Nyt Projekt" shortcut="N" />
-                  <Item onSelect={() => { onAction('save'); setIsOpen(false); }} icon={<Save size={16} />} label="Gem Version" shortcut="Cmd+S" />
-                  <Item onSelect={() => { onAction('sync'); setIsOpen(false); }} icon={<History size={16} />} label="Synkroniser fra disk" />
+                <Command.Group heading={t('command_menu.actions_heading')} className="px-2 py-2 text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-2">
+                  <Item onSelect={() => { onAction('new-project'); setIsOpen(false); }} icon={<Plus size={16} />} label={t('sidebar.new_project')} shortcut="N" />
+                  <Item onSelect={() => { onAction('save'); setIsOpen(false); }} icon={<Save size={16} />} label={t('command_menu.save_version')} shortcut="Cmd+S" />
+                  <Item onSelect={() => { onAction('sync'); setIsOpen(false); }} icon={<HistoryIcon size={16} />} label={t('command_menu.sync')} />
                 </Command.Group>
 
                 {projects.length > 0 && (
-                  <Command.Group heading="Projekter" className="px-2 py-2 text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-2">
+                  <Command.Group heading={t('command_menu.projects_heading')} className="px-2 py-2 text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-2">
                     {projects.map(p => (
                       <Item 
                         key={p.id} 
@@ -113,8 +115,8 @@ export function CommandMenu({
 
               <div className="p-3 bg-neutral-50/50 border-t border-neutral-100 flex items-center justify-between text-[10px] text-neutral-400 font-medium">
                 <div className="flex items-center gap-4">
-                  <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-neutral-200 rounded">↵</kbd> Vælg</span>
-                  <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-neutral-200 rounded">↑↓</kbd> Naviger</span>
+                  <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-neutral-200 rounded">↵</kbd> {t('command_menu.select')}</span>
+                  <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-neutral-200 rounded">↑↓</kbd> {t('command_menu.navigate')}</span>
                 </div>
                 <div className="flex items-center gap-1 text-neutral-300 italic">
                   MVP Builder v2.0

@@ -11,6 +11,7 @@ import { InstructionSet, TabType } from '../types';
 import { TAB_LABEL, EDITOR_TABS, getTabContent, setTabContent } from '../tabConfig';
 import { cn } from '../lib/utils';
 import { UseAIReturn } from '../hooks/useAI';
+import { useTranslation } from '../contexts/LanguageContext';
 
 // ─── Tab list ─────────────────────────────────────────────────────────────────
 
@@ -48,18 +49,20 @@ function ApplyTemplateButton({ activeTab, currentVersion, setCurrentVersion, set
   setIsDirty: (v: boolean) => void;
   showConfirm: (msg: string, fn: () => void) => void;
 }) {
+  const { t } = useTranslation();
   const apply = () => {
     const projectName = 'Navn på din App';
-    const lastModified = `\n\n---\nLast-Modified: ${new Date().toISOString().split('T')[0]}`;
+    const lastModPrefix = t('common.version') === 'Version' ? 'Last-Modified' : 'Sidst-ændret';
+    const lastModified = `\n\n---\n${lastModPrefix}: ${new Date().toISOString().split('T')[0]}`;
     const existing = getTabContent(currentVersion, activeTab);
     const templates: Record<string, string> = {
-      llms: `# ${projectName}\nEn minimalistisk Tools for Thought applikation...\n\nKerne Dokumentation\n-(/docs/architecture.md)${lastModified}`,
-      architecture: `# ARCHITECTURE.md - ${projectName}\n\n## Stack\n- **Frontend**: React 19 + Vite\n- **Backend**: Express.js\n- **Database**: Firebase Firestore${lastModified}`,
-      spec: `# SPEC.md - ${projectName}\n\n## Vision\nKlar beskrivelse af projektets overordnede mål.\n\n## User Stories\n- Som en [bruger], ønsker jeg at [handling], så [resultat].\n\n## Success Criteria\n- [ ] Kriterie 1${lastModified}`,
-      plan: `# PLAN.md - ${projectName}\n\n## Milestone 1: Core\n- [ ] Opgave 1 (Verificering: kør 'npm test')${lastModified}`,
-      state: `# STATE.md - ${projectName}\n\n## Session Log\n- **${new Date().toISOString().split('T')[0]}**: Projekt startet.\n\n## Decisions\n- ...\n\n## Blockers\n- Ingen${lastModified}`,
-      agents: `# AGENTS.md - ${projectName}\n\n## Orchestrator\n- Rolle: System Arkitekt\n- Værktøjer: grep, npx, git${lastModified}`,
-      testing: `# QA & Test Protokol - ${projectName}\n\n## TDD Workflow\nGenerér altid en unit-test i Vitest, der fejler, før ny logik implementeres.${lastModified}`,
+      llms: `# ${projectName}\n${t('editor.llms_composer.dna_desc').replace('{file}', 'llms.txt')}\n\nKerne Dokumentation\n-(/docs/architecture.md)${lastModified}`,
+      architecture: `# ARCHITECTURE.md - ${projectName}\n\n## ${t('editor.templates.architecture_stack')}\n- **${t('editor.templates.architecture_frontend')}**: React 19 + Vite\n- **${t('editor.templates.architecture_backend')}**: Express.js\n- **${t('editor.templates.architecture_database')}**: Firebase Firestore${lastModified}`,
+      spec: `# SPEC.md - ${projectName}\n\n## Vision\n${t('editor.spec_composer.vision.desc')}\n\n## User Stories\n- ${t('editor.spec_composer.stories.desc')}\n\n## Success Criteria\n- [ ] ${t('editor.spec_composer.criteria.desc')}${lastModified}`,
+      plan: `# PLAN.md - ${projectName}\n\n## ${t('editor.templates.plan_milestone')}\n- [ ] ${t('editor.templates.plan_task')}${lastModified}`,
+      state: `# STATE.md - ${projectName}\n\n## ${t('editor.templates.state_log')}\n- **${new Date().toISOString().split('T')[0]}**: ${t('header.overview')}...${lastModified}`,
+      agents: `# AGENTS.md - ${projectName}\n\n## Orchestrator\n- ${t('editor.module_composer.descriptions.agents')}${lastModified}`,
+      testing: `# ${t('editor.templates.testing_title')} - ${projectName}\n\n## ${t('editor.templates.testing_workflow')}\n${t('editor.module_composer.descriptions.testing')}${lastModified}`,
     };
     const template = templates[activeTab] || '';
     if (!template) return;
@@ -68,7 +71,7 @@ function ApplyTemplateButton({ activeTab, currentVersion, setCurrentVersion, set
       setIsDirty(true);
     };
     if (existing && existing.trim().length > 50) {
-      showConfirm('Der er allerede indhold i denne fil. Vil du overskrive det med standard-templaten?', doApply);
+      showConfirm(t('editor.common.template_confirm'), doApply);
     } else {
       doApply();
     }
@@ -80,7 +83,7 @@ function ApplyTemplateButton({ activeTab, currentVersion, setCurrentVersion, set
       className="text-sm flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors"
     >
       <LayoutTemplate size={14} />
-      Anvend Template
+      {t('editor.common.apply_template')}
     </button>
   ) : null;
 }
@@ -98,6 +101,7 @@ export function WorkbenchEditor({
   isCopied, copyToClipboard,
   applyTemplate, saveVersion, showConfirm, setViewMode,
 }: WorkbenchEditorProps) {
+  const { t } = useTranslation();
   return (
     <>
       {/* Tab strip */}
@@ -107,7 +111,7 @@ export function WorkbenchEditor({
           className="pb-4 text-sm font-medium text-neutral-400 hover:text-neutral-900 transition-all flex items-center gap-2 flex-shrink-0"
         >
           <ArrowLeft size={14} />
-          Oversigt
+          {t('editor.tabs.overview')}
         </button>
         <div className="w-px h-4 bg-neutral-200 mt-0.5 flex-shrink-0" />
 
@@ -120,7 +124,7 @@ export function WorkbenchEditor({
               activeTab === tab ? 'text-neutral-900' : 'text-neutral-400 hover:text-neutral-600'
             )}
           >
-            {TAB_LABEL[tab] ?? tab}
+            {t(`editor.tabs.${tab}`) || tab}
             {activeTab === tab && (
               <motion.div
                 layoutId="tab-underline"
@@ -138,7 +142,7 @@ export function WorkbenchEditor({
             <div className="flex flex-col items-center gap-3">
               <div className="w-6 h-6 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" />
               <p className="text-sm text-neutral-400 font-medium uppercase tracking-widest">
-                Henter seneste version...
+                {t('editor.common.loading')}
               </p>
             </div>
           </div>
@@ -149,9 +153,9 @@ export function WorkbenchEditor({
                 <History size={24} />
               </div>
               <div className="space-y-2">
-                <h3 className="text-sm font-medium text-neutral-900">Ingen versioner fundet</h3>
+                <h3 className="text-sm font-medium text-neutral-900">{t('editor.common.no_versions_title')}</h3>
                 <p className="text-sm text-neutral-500 leading-relaxed">
-                  Dette projekt har endnu ikke nogen gemte versioner.
+                  {t('editor.common.no_versions_desc')}
                 </p>
               </div>
               </div>
@@ -190,7 +194,7 @@ export function WorkbenchEditor({
               <div className="flex items-center justify-between mb-6">
                 <h4 className="text-sm font-medium flex items-center gap-2 text-neutral-900">
                   <Sparkles size={16} className="text-neutral-400" />
-                  AI Forslag
+                  {t('editor.common.ai_suggestion')}
                 </h4>
                 <button
                   onClick={() => ai.setAiSuggestion(null)}
@@ -213,13 +217,14 @@ export function WorkbenchEditor({
 // ─── Sub-views ────────────────────────────────────────────────────────────────
 
 function InfoTab({ ai }: { ai: UseAIReturn }) {
+  const { t } = useTranslation();
   return (
     <div className="flex-1 p-8 overflow-y-auto bg-white">
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="flex items-center justify-between border-b border-neutral-100 pb-6">
           <div className="space-y-1">
-            <h2 className="text-2xl font-light tracking-tight text-neutral-900">Workbench Guide</h2>
-            <p className="text-sm text-neutral-500">Lær hvordan du bruger AI Tuner til at skabe den ultimative AI-kontekst.</p>
+            <h2 className="text-2xl font-light tracking-tight text-neutral-900">{t('editor.guide.title')}</h2>
+            <p className="text-sm text-neutral-500">{t('editor.guide.subtitle')}</p>
           </div>
           <div className="flex items-center gap-4">
             {ai.isLoadingGuide && (
@@ -230,7 +235,7 @@ function InfoTab({ ai }: { ai: UseAIReturn }) {
               disabled={ai.isLoadingGuide}
               className="text-sm uppercase tracking-widest font-bold text-neutral-400 hover:text-neutral-900 transition-colors disabled:opacity-50"
             >
-              Opdater med AI
+              {t('editor.guide.update_ai')}
             </button>
             <div className="p-3 bg-neutral-50 rounded-full text-neutral-400">
               <Info size={24} />
@@ -242,13 +247,13 @@ function InfoTab({ ai }: { ai: UseAIReturn }) {
           <div className="py-20 flex flex-col items-center gap-4">
             <div className="w-8 h-8 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" />
             <p className="text-sm text-neutral-400 font-medium uppercase tracking-widest">
-              Genererer guide med AI...
+              {t('editor.guide.generating')}
             </p>
           </div>
         ) : (
           <div className="markdown-body prose prose-neutral prose-base max-w-none prose-headings:font-light prose-headings:tracking-tight prose-a:text-blue-600">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {ai.workbenchGuide || 'Ingen guide tilgængelig.'}
+              {ai.workbenchGuide || t('editor.guide.no_guide')}
             </ReactMarkdown>
           </div>
         )}
@@ -262,7 +267,8 @@ import { buildMasterPrompt } from '../hooks/useVersions';
 function MasterPromptTab({
   projectName, currentVersion, isCopied, copyToClipboard,
 }: { projectName: string; currentVersion: InstructionSet; isCopied: boolean; copyToClipboard: (t: string) => void }) {
-  const [masterPrompt, setMasterPrompt] = React.useState<string>('Kompilerer The Master Prompt...');
+  const { t } = useTranslation();
+  const [masterPrompt, setMasterPrompt] = React.useState<string>(t('editor.master_prompt.compiling'));
 
   React.useEffect(() => {
     async function compilePrompt() {
@@ -286,7 +292,7 @@ function MasterPromptTab({
         );
         setMasterPrompt(promptText);
       } catch (e) {
-        setMasterPrompt('Fejl ved kompilering af prompt.');
+        setMasterPrompt(t('editor.master_prompt.error'));
       }
     }
     compilePrompt();
@@ -296,10 +302,10 @@ function MasterPromptTab({
       <div className="flex items-center justify-between mb-4">
         <div className="space-y-1">
           <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-bold">
-            Master Prompt Compiler
+            {t('editor.master_prompt.title')}
           </h3>
           <p className="text-sm text-neutral-500 italic">
-            Denne prompt er den samlede "DNA" pakke til dine andre AI-agenter (f.eks. i JetBrains).
+            {t('editor.master_prompt.subtitle')}
           </p>
         </div>
         <button
@@ -307,7 +313,7 @@ function MasterPromptTab({
           className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-md text-white transition-colors flex items-center gap-2 text-sm border border-white/10"
         >
           {isCopied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
-          {isCopied ? 'Kopieret!' : 'Kopier Master Prompt'}
+          {isCopied ? t('editor.common.copied') : t('editor.master_prompt.copy_button')}
         </button>
       </div>
 
@@ -317,11 +323,10 @@ function MasterPromptTab({
 
       <div className="p-5 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-2">
         <h4 className="text-sm font-bold text-amber-400 uppercase flex items-center gap-2">
-          <Info size={12} /> Sådan bruger du Master Prompt
+          <Info size={12} /> {t('editor.master_prompt.usage_title')}
         </h4>
         <p className="text-sm text-neutral-400 leading-relaxed">
-          Kopier denne tekst og indsæt den som den første besked i en ny chat med din AI-agent i JetBrains eller
-          VS Code. Det giver agenten fuld kontekst om dine design-dogmer, arkitektur og system-regler med det samme.
+          {t('editor.master_prompt.usage_desc')}
         </p>
       </div>
     </div>
@@ -341,6 +346,7 @@ function SplitEditorTab({
   copyToClipboard: (t: string) => void;
   showConfirm: (msg: string, fn: () => void) => void;
 }) {
+  const { t } = useTranslation();
   const isSpecTab = activeTab === 'spec';
   const isModuleTab = ['plan', 'architecture', 'state', 'agents', 'testing', 'rules', 'skills', 'workflows'].includes(activeTab);
   const content = getTabContent(currentVersion, activeTab);
@@ -376,7 +382,7 @@ function SplitEditorTab({
             className="p-2 hover:bg-neutral-50 rounded-md text-neutral-400 hover:text-neutral-900 transition-colors flex items-center gap-2 text-sm"
           >
             {isCopied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-            {isCopied ? 'Kopieret!' : 'Kopier tekst'}
+            {isCopied ? t('editor.common.copied') : t('editor.common.copy')}
           </button>
         </div>
 
@@ -388,7 +394,7 @@ function SplitEditorTab({
               setIsDirty(true);
             }}
             className="flex-1 w-full bg-neutral-50/30 border border-neutral-100 rounded-xl p-6 text-neutral-700 font-mono text-sm resize-none leading-relaxed focus:outline-none focus:border-neutral-200 transition-colors"
-            placeholder={`Den endelige ${activeTab}.${activeTab === 'llms' || activeTab === 'llms-full' ? 'txt' : 'md'} genereres her...`}
+            placeholder={t('editor.llms_composer.final_placeholder').replace('{file}', `${activeTab}.${activeTab === 'llms' || activeTab === 'llms-full' ? 'txt' : 'md'}`)}
           />
           {(activeTab === 'llms' || activeTab === 'llms-full') && (
             <div className="mt-2 flex items-center justify-end gap-2 px-2">
@@ -397,7 +403,7 @@ function SplitEditorTab({
                 content.length > 2048 ? 'text-red-500' :
                 content.length > 1600 ? 'text-amber-500' : 'text-neutral-400'
               )}>
-                {content.length} / 2048 tegn (2 KB grænse)
+                {t('editor.llms_composer.character_limit').replace('{n}', content.length.toString())}
               </span>
             </div>
           )}
@@ -408,30 +414,30 @@ function SplitEditorTab({
 }
 
 function SpecComposer({ ai, currentVersion }: { ai: UseAIReturn; currentVersion: InstructionSet }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       <div className="p-6 bg-white border border-neutral-100 rounded-2xl space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
           <h4 className="text-sm font-bold text-neutral-900 uppercase flex items-center gap-2">
-            <Sparkles size={14} className="text-amber-500" /> Vision Composer
+            <Sparkles size={14} className="text-amber-500" /> {t('editor.spec_composer.title')}
           </h4>
           {ai.visionInput && (
             <button
               onClick={() => ai.setVisionInput('')}
               className="text-[10px] font-bold text-neutral-400 hover:text-red-500 uppercase tracking-widest transition-colors"
             >
-              Ryd felt
+              {t('editor.spec_composer.clear')}
             </button>
           )}
         </div>
         <p className="text-sm text-neutral-500 leading-relaxed">
-          Beskriv din vision i fritekst. AI'en transformerer dit input til en struktureret{' '}
-          <code className="px-1 bg-neutral-100 rounded">SPEC.md</code>.
+          {t('editor.spec_composer.desc').replace('{file}', 'SPEC.md')}
         </p>
         <textarea
           value={ai.visionInput}
           onChange={(e) => ai.setVisionInput(e.target.value)}
-          placeholder="Beskriv hvad du vil bygge, hvem det er til, og hvilke problemer det løser..."
+          placeholder={t('editor.spec_composer.placeholder')}
           className="w-full h-48 p-4 bg-neutral-50 border border-neutral-100 rounded-xl text-sm focus:ring-2 focus:ring-neutral-200 focus:border-neutral-300 transition-all resize-none leading-relaxed"
         />
         <div className="grid grid-cols-2 gap-3">
@@ -441,7 +447,7 @@ function SpecComposer({ ai, currentVersion }: { ai: UseAIReturn; currentVersion:
             className="py-3 bg-neutral-900 text-white rounded-xl text-sm font-medium hover:bg-neutral-800 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
           >
             <Sparkles size={14} className={cn(ai.isAiLoading && 'animate-pulse')} />
-            Generer SPEC
+            {t('editor.spec_composer.generate_button')}
           </button>
           <button
             onClick={ai.handleAiSpecUpdate}
@@ -449,22 +455,22 @@ function SpecComposer({ ai, currentVersion }: { ai: UseAIReturn; currentVersion:
             className="py-3 border border-neutral-200 bg-white text-neutral-600 rounded-xl text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
           >
             <History size={14} />
-            Opdater SPEC
+            {t('editor.spec_composer.update_button')}
           </button>
         </div>
       </div>
 
       <div className="pt-8 border-t border-neutral-100 space-y-4">
         <h4 className="text-sm font-bold text-neutral-900 uppercase flex items-center gap-2">
-          <Info size={12} className="text-neutral-400" /> Hvad er SPEC.md?
+          <Info size={12} className="text-neutral-400" /> {t('editor.spec_composer.what_is_spec')}
         </h4>
         <div className="space-y-3">
           {[
-            ['Vision', 'Det overordnede formål med projektet. Hvorfor eksisterer det?'],
-            ['User Stories', 'Specifikke scenarier der beskriver brugerens behov.'],
-            ['Success Criteria', 'Hvornår er projektet færdigt og succesfuldt?'],
-          ].map(([title, desc]) => (
-            <div key={title} className="text-sm text-neutral-500 leading-relaxed">
+            ['vision', t('editor.spec_composer.vision.label'), t('editor.spec_composer.vision.desc')],
+            ['stories', t('editor.spec_composer.stories.label'), t('editor.spec_composer.stories.desc')],
+            ['criteria', t('editor.spec_composer.criteria.label'), t('editor.spec_composer.criteria.desc')],
+          ].map(([key, title, desc]) => (
+            <div key={key} className="text-sm text-neutral-500 leading-relaxed">
               <span className="font-semibold text-neutral-700">{title}:</span> {desc}
             </div>
           ))}
@@ -477,15 +483,16 @@ function SpecComposer({ ai, currentVersion }: { ai: UseAIReturn; currentVersion:
 function ModuleComposer({
   activeTab, ai, currentVersion,
 }: { activeTab: TabType; ai: UseAIReturn; currentVersion: InstructionSet }) {
+  const { t } = useTranslation();
   const moduleDescriptions: Record<string, string> = {
-    rules: 'Rules fungerer som systeminstrukser ved at guide agentens overordnede adfærd, f.eks. kodestil eller dokumentationskrav.',
-    skills: 'Agent Skills er specialiserede evner, som agenten kan trække på. Hver skill gemmes som en SKILL.md fil.',
-    workflows: 'Workflows definerer sekvenser af handlinger og beslutningsprocesser for dine agenter.',
-    plan: 'PLAN.md definerer din eksekverings-roadmap. Den bryder visionen ned i konkrete, atomiske opgaver.',
-    architecture: 'ARCHITECTURE.md beskriver den tekniske stack, datamodeller og hvordan systemet hænger sammen.',
-    state: 'STATE.md sikrer proces-kontinuitet ved at logge vigtige beslutninger og den nuværende tilstand af projektet.',
-    agents: 'AGENTS.md er optimeret til AI-agenter, så de forstår deres rolle og de værktøjer de har til rådighed.',
-    testing: 'testing.md indeholder din test-strategi og specifikke cases for at verificere dine success-kriterier.',
+    rules: t('editor.module_composer.descriptions.rules'),
+    skills: t('editor.module_composer.descriptions.skills'),
+    workflows: t('editor.module_composer.descriptions.workflows'),
+    plan: t('editor.module_composer.descriptions.plan'),
+    architecture: t('editor.module_composer.descriptions.architecture'),
+    state: t('editor.module_composer.descriptions.state'),
+    agents: t('editor.module_composer.descriptions.agents'),
+    testing: t('editor.module_composer.descriptions.testing'),
   };
 
   return (
@@ -493,23 +500,22 @@ function ModuleComposer({
       <div className="p-6 bg-white border border-neutral-100 rounded-2xl space-y-4 shadow-sm">
         <h4 className="text-sm font-bold text-neutral-900 uppercase flex items-center gap-2">
           <Sparkles size={14} className="text-amber-500" />
-          {activeTab.toUpperCase()} Composer
+          {t('editor.module_composer.title').replace('{type}', activeTab.toUpperCase())}
         </h4>
         <p className="text-sm text-neutral-500 leading-relaxed">
-          Benyt din <code className="px-1 bg-neutral-100 rounded">SPEC.md</code> som fundament for at generere eller
-          opdatere dette modul.
+          {t('editor.module_composer.desc').replace('{file}', 'SPEC.md')}
         </p>
 
         {!currentVersion.spec ? (
           <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
             <p className="text-sm text-amber-700 flex items-center gap-2">
               <Info size={14} />
-              Du skal først oprette en SPEC.md før du kan generere andre moduler.
+              {t('editor.module_composer.no_spec')}
             </p>
           </div>
         ) : (
           <div className="p-4 bg-neutral-50 border border-neutral-100 rounded-xl space-y-2">
-            <p className="text-sm font-bold text-neutral-400 uppercase">Aktivt Fundament:</p>
+            <p className="text-sm font-bold text-neutral-400 uppercase">{t('editor.module_composer.active_foundation')}</p>
             <p className="text-sm text-neutral-600 line-clamp-3 italic">
               {currentVersion.spec.substring(0, 200)}...
             </p>
@@ -523,7 +529,7 @@ function ModuleComposer({
             className="py-3 bg-neutral-900 text-white rounded-xl text-sm font-medium hover:bg-neutral-800 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
           >
             <Sparkles size={14} className={cn(ai.isAiLoading && 'animate-pulse')} />
-            Generer {activeTab.toUpperCase()}
+            {t('editor.module_composer.generate_button').replace('{type}', activeTab.toUpperCase())}
           </button>
           <button
             onClick={ai.handleAiModuleUpdate}
@@ -531,14 +537,14 @@ function ModuleComposer({
             className="py-3 border border-neutral-200 bg-white text-neutral-600 rounded-xl text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
           >
             <History size={14} />
-            Opdater {activeTab.toUpperCase()}
+            {t('editor.module_composer.update_button').replace('{type}', activeTab.toUpperCase())}
           </button>
         </div>
       </div>
 
       <div className="pt-8 border-t border-neutral-100 space-y-4">
         <h4 className="text-sm font-bold text-neutral-900 uppercase flex items-center gap-2">
-          <Info size={12} className="text-neutral-400" /> Om {activeTab.toUpperCase()}
+          <Info size={12} className="text-neutral-400" /> {t('editor.module_composer.about_title').replace('{type}', activeTab.toUpperCase())}
         </h4>
         <p className="text-sm text-neutral-500 leading-relaxed italic">
           {moduleDescriptions[activeTab] || ''}
@@ -558,29 +564,28 @@ function LlmsComposer({
   setCurrentVersion: React.Dispatch<React.SetStateAction<InstructionSet | null>>;
   setIsDirty: (v: boolean) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <>
       <div className="p-5 bg-white border border-neutral-100 rounded-2xl space-y-3 shadow-sm">
         <h4 className="text-sm font-bold text-neutral-900 uppercase flex items-center gap-2">
-          <Dna size={12} className="text-neutral-400" /> Projektets DNA
+          <Dna size={12} className="text-neutral-400" /> {t('editor.llms_composer.dna_title')}
         </h4>
         <p className="text-sm text-neutral-500 leading-relaxed">
-          Som en del af projektets DNA skal der oprettes en{' '}
-          <code className="px-1 py-0.5 bg-neutral-100 rounded text-neutral-700 font-mono">/llms.txt</code>{' '}
-          fil i projektets rod-mappe. Denne fil fungerer som et maskinlæsbart kort over projektet.
+          {t('editor.llms_composer.dna_desc').replace('{file}', 'llms.txt')}
         </p>
         <div className="pt-2 border-t border-neutral-50">
           <p className="text-sm text-amber-600 font-medium flex items-center gap-1">
-            <Sparkles size={10} /> AI-drevet opdatering:
+            <Sparkles size={10} /> {t('editor.llms_composer.ai_update_title')}
           </p>
           <p className="text-sm text-neutral-400 italic">
-            Du kan bede mig (din AI) om at opdatere denne fil direkte.
+            {t('editor.llms_composer.ai_update_desc')}
           </p>
         </div>
       </div>
 
       <div className="flex items-center justify-between">
-        <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-bold">Composer Elements</h3>
+        <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-bold">{t('editor.llms_composer.composer_elements')}</h3>
         <ApplyTemplateButton
           activeTab={activeTab}
           currentVersion={currentVersion}
@@ -592,11 +597,11 @@ function LlmsComposer({
 
       <div className="space-y-6">
         {[
-          [TypeIcon, 'Overskrift & Intro', 'Start med projektets navn og en "high-level" beskrivelse.'],
-          [LinkIcon, 'Centrale Links', 'Hvor kan AI\'en finde mere dokumentation?'],
-          [ListIcon, 'Retningslinjer', 'Specifikke regler for kode eller adfærd.'],
-        ].map(([Icon, label, desc]) => (
-          <div key={label as string} className="space-y-2">
+          [TypeIcon, 'intro', t('editor.llms_composer.elements.intro.label'), t('editor.llms_composer.elements.intro.desc')],
+          [LinkIcon, 'links', t('editor.llms_composer.elements.links.label'), t('editor.llms_composer.elements.links.desc')],
+          [ListIcon, 'rules', t('editor.llms_composer.elements.rules.label'), t('editor.llms_composer.elements.rules.desc')],
+        ].map(([Icon, key, label, desc]) => (
+          <div key={key as string} className="space-y-2">
             <label className="text-sm font-bold text-neutral-400 uppercase flex items-center gap-2">
               <Icon size={12} /> {label as string}
             </label>
@@ -611,21 +616,21 @@ function LlmsComposer({
             className="w-full py-3 border border-neutral-200 rounded-xl text-sm font-medium text-neutral-600 hover:bg-white hover:border-neutral-300 transition-all flex items-center justify-center gap-2"
           >
             <Sparkles size={14} className={cn(ai.isAiLoading && 'animate-pulse')} />
-            {ai.isAiLoading ? 'Genererer forslag...' : 'Få AI til at udfylde elementer'}
+            {ai.isAiLoading ? t('editor.llms_composer.improving') : t('editor.llms_composer.improve_button')}
           </button>
         </div>
 
         <div className="pt-8 border-t border-neutral-100 space-y-4">
           <h4 className="text-sm font-bold text-neutral-900 uppercase flex items-center gap-2">
-            <Info size={12} className="text-neutral-400" /> Best practices for konfiguration
+            <Info size={12} className="text-neutral-400" /> {t('editor.llms_composer.best_practices_title')}
           </h4>
           <div className="space-y-3">
             {[
-              ['Hold den let', 'Filen bør ideelt set være under 2 KB for at sikre lynhurtig indlæsning.'],
-              ['Gennemsigtighed', 'Inkludér en "Last-Modified" dato i bunden af filen.'],
-              ['Supplerende filer', 'Opret en llms-full.txt med det fulde indhold af alle vigtige dokumenter.'],
-              ['Undgå visuel støj', 'Inkludér aldrig HTML, JavaScript eller unødig styling i disse filer.'],
-            ].map(([title, desc]) => (
+              ['light', t('editor.llms_composer.best_practices.light.label'), t('editor.llms_composer.best_practices.light.desc')],
+              ['transparency', t('editor.llms_composer.best_practices.transparency.label'), t('editor.llms_composer.best_practices.transparency.desc')],
+              ['extra', t('editor.llms_composer.best_practices.extra.label'), t('editor.llms_composer.best_practices.extra.desc')],
+              ['no_noise', t('editor.llms_composer.best_practices.no_noise.label'), t('editor.llms_composer.best_practices.no_noise.desc')],
+            ].map(([key, title, desc]) => (
               <div key={title} className="text-sm text-neutral-500 leading-relaxed">
                 <span className="font-semibold text-neutral-700">{title}:</span> {desc}
               </div>

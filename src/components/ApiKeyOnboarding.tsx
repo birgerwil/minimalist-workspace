@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Key, ArrowRight, ExternalLink } from 'lucide-react';
 import { User as FirebaseUser } from 'firebase/auth';
+import { useTranslation } from '../contexts/LanguageContext';
 
 interface ApiKeyOnboardingProps {
   user: FirebaseUser;
@@ -10,6 +11,7 @@ interface ApiKeyOnboardingProps {
 }
 
 export function ApiKeyOnboarding({ user, onSave, onLogout }: ApiKeyOnboardingProps) {
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
 
   return (
@@ -24,11 +26,10 @@ export function ApiKeyOnboarding({ user, onSave, onLogout }: ApiKeyOnboardingPro
         </div>
         
         <h2 className="text-2xl font-light tracking-tight text-center text-neutral-900 mb-2">
-          Hjertet i din Workbench
+          {t('onboarding.title')}
         </h2>
         <p className="text-sm text-neutral-500 text-center mb-8">
-          AI Tuner kræver adgang til Google Gemini for at drive arkitektur-agenterne.
-          Din nøgle gemmes kun lokalt i din browser.
+          {t('onboarding.desc')}
         </p>
 
         <form 
@@ -41,7 +42,7 @@ export function ApiKeyOnboarding({ user, onSave, onLogout }: ApiKeyOnboardingPro
           <div>
             <input
               type="password"
-              placeholder="Indsæt din Gemini API Nøgle..."
+              placeholder={t('onboarding.placeholder')}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               className="w-full bg-neutral-50 border border-neutral-200 rounded-xl p-4 text-sm focus:outline-none focus:border-neutral-400 transition-colors text-neutral-900 font-mono"
@@ -54,7 +55,7 @@ export function ApiKeyOnboarding({ user, onSave, onLogout }: ApiKeyOnboardingPro
             disabled={!inputValue.trim()}
             className="w-full py-4 bg-neutral-900 text-neutral-50 rounded-xl font-medium hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
           >
-            Fortsæt
+            {t('onboarding.continue')}
             <ArrowRight size={18} />
           </button>
         </form>
@@ -66,14 +67,14 @@ export function ApiKeyOnboarding({ user, onSave, onLogout }: ApiKeyOnboardingPro
             rel="noopener noreferrer"
             className="text-sm text-neutral-400 hover:text-neutral-600 flex items-center justify-center gap-1 transition-colors"
           >
-            Hent en gratis nøgle i Google AI Studio <ExternalLink size={12} />
+            {t('onboarding.get_key')} <ExternalLink size={12} />
           </a>
           
           <button 
             onClick={onLogout}
             className="text-sm text-neutral-400 hover:text-red-600 transition-colors mt-4"
           >
-            Log ud af {user.email || 'konto'}
+            {t('onboarding.logout_of').replace('{n}', user.email || 'account')}
           </button>
         </div>
       </motion.div>

@@ -10,6 +10,7 @@ import {
   updateModuleFromSpec,
 } from '../services/gemini';
 import { toast } from 'sonner';
+import { useTranslation } from '../contexts/LanguageContext';
 
 // ─── Static Guide Fallback ────────────────────────────────────────────────────
 
@@ -67,6 +68,7 @@ export function useAI(
   setCurrentVersion: React.Dispatch<React.SetStateAction<InstructionSet | null>>,
   setIsDirty: (dirty: boolean) => void
 ): UseAIReturn {
+  const { t } = useTranslation();
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
   const [visionInput, setVisionInput] = useState('');
@@ -105,7 +107,7 @@ export function useAI(
       setAiSuggestion(suggestion);
     } catch (err) {
       console.error(err);
-      toast.error('AI Improve fejlede. Tjek API-nøglen.');
+      toast.error(t('toasts.ai_improve_failed'));
     } finally {
       setIsAiLoading(false);
     }
@@ -122,10 +124,10 @@ export function useAI(
       );
       setCurrentVersion((prev) => prev ? { ...prev, spec: newSpec ?? '' } : null);
       setIsDirty(true);
-      toast.success('SPEC.md genereret fra din vision!');
+      toast.success(t('toasts.spec_generated'));
     } catch (err) {
       console.error(err);
-      toast.error('Kunne ikke generere SPEC.md');
+      toast.error(t('toasts.spec_gen_failed'));
     } finally {
       setIsAiLoading(false);
     }
@@ -143,10 +145,10 @@ export function useAI(
       );
       setCurrentVersion((prev) => prev ? { ...prev, spec: updatedSpec ?? '' } : null);
       setIsDirty(true);
-      toast.success('SPEC.md opdateret med dine nye input!');
+      toast.success(t('toasts.spec_updated'));
     } catch (err) {
       console.error(err);
-      toast.error('Kunne ikke opdatere SPEC.md');
+      toast.error(t('toasts.spec_update_failed'));
     } finally {
       setIsAiLoading(false);
     }
@@ -154,7 +156,7 @@ export function useAI(
 
   const handleAiModuleGenerate = async () => {
     if (!currentVersion?.spec) {
-      toast.error('Du skal have en SPEC.md som fundament først!');
+      toast.error(t('toasts.spec_required'));
       return;
     }
     setIsAiLoading(true);
@@ -169,10 +171,10 @@ export function useAI(
         prev ? setTabContent(prev, activeTab, newContent ?? '') : null
       );
       setIsDirty(true);
-      toast.success(`${TAB_LABEL[activeTab] || activeTab} genereret fra SPEC.md fundamentet!`);
+      toast.success(t('toasts.module_generated').replace('{n}', t('editor.tabs.' + activeTab)));
     } catch (err) {
       console.error(err);
-      toast.error(`Kunne ikke generere ${TAB_LABEL[activeTab] || activeTab}`);
+      toast.error(t('toasts.module_gen_failed').replace('{n}', t('editor.tabs.' + activeTab)));
     } finally {
       setIsAiLoading(false);
     }
@@ -180,7 +182,7 @@ export function useAI(
 
   const handleAiModuleUpdate = async () => {
     if (!currentVersion?.spec) {
-      toast.error('Du skal have en SPEC.md som fundament først!');
+      toast.error(t('toasts.spec_required'));
       return;
     }
     setIsAiLoading(true);
@@ -197,10 +199,10 @@ export function useAI(
         prev ? setTabContent(prev, activeTab, updatedContent ?? '') : null
       );
       setIsDirty(true);
-      toast.success(`${TAB_LABEL[activeTab] || activeTab} opdateret baseret på SPEC.md!`);
+      toast.success(t('toasts.module_updated').replace('{n}', t('editor.tabs.' + activeTab)));
     } catch (err) {
       console.error(err);
-      toast.error(`Kunne ikke opdatere ${TAB_LABEL[activeTab] || activeTab}`);
+      toast.error(t('toasts.module_update_failed').replace('{n}', t('editor.tabs.' + activeTab)));
     } finally {
       setIsAiLoading(false);
     }

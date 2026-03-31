@@ -31,8 +31,6 @@ function buildLlmsTxt(
   agentSkills: Array<{ name: string; content: string }>
 ): string {
   const today = new Date().toISOString().split('T')[0];
-  const coreSkills = agentSkills.filter(s => !s.name.startsWith('audit/'));
-  const auditSkills = agentSkills.filter(s => s.name.startsWith('audit/'));
 
   return [
     `# ${projectName}`,
@@ -46,7 +44,7 @@ function buildLlmsTxt(
     `- /docs/SPEC.md            — Vision, user stories og success criteria`,
     `- /docs/architecture.md    — Tech stack, datamodel og systemarkitektur`,
     `- /docs/PLAN.md            — Atomiske opgaver og milestones`,
-    `- /docs/AGENTS.md          — AI-team konfiguration og auditørkorps`,
+    `- /docs/AGENTS.md          — AI-team konfiguration`,
     `- /docs/testing.md         — Test-suites, TDD-workflow og E2E-cases`,
     `- /docs/STATE.md           — Beslutningslog, ADR'er og åbne risici`,
     `- /docs/DESIGN.md          — UI-filosofi, design tokens og komponentbibliotek`,
@@ -64,25 +62,7 @@ function buildLlmsTxt(
     `## Platform Skills (.agents/skills/)`,
     ``,
     `### Core Skills`,
-    ...coreSkills.map(s => `- /.agents/skills/${s.name}.md`),
-    ``,
-    `### Auditørkorps (.agents/skills/audit/)`,
-    ...auditSkills.map(s => `- /.agents/skills/${s.name}.md`),
-    ``,
-    `## Aktivering`,
-    ``,
-    `| Kommando              | Funktion                                           |`,
-    `|:----------------------|:---------------------------------------------------|`,
-    `| /audit                | Chef Auditør — triage og orchestrering             |`,
-    `| /audit ux             | UX Auditør — Interaction Fluency                   |`,
-    `| /audit docs           | Docs Auditør — placeholder-tjek og konsistens      |`,
-    `| /audit sikkerhed      | Sikkerhedsauditør — Firestore, PII, CVE            |`,
-    `| /audit api            | API Auditør — npm, fetch, Firestore-queries        |`,
-    `| /audit arkitektur     | Arkitektur Auditør — lag-violations, vendor lock   |`,
-    `| /audit performance    | Performance Auditør — Core Web Vitals 2025         |`,
-    `| /audit test           | Test Auditør — TDD-compliance, coverage, CI        |`,
-    `| /audit corpus         | Corpus Auditør — CSI-loop (kører automatisk)       |`,
-    `| /audit refresh [x]    | Knowledge Refresh — opdatér specifik auditørs viden|`,
+    ...agentSkills.map(s => `- /.agents/skills/${s.name}.md`),
   ].join('\n');
 }
 
@@ -94,8 +74,6 @@ export function buildMasterPrompt(
   agentSkills: Array<{ name: string; content: string }> = [],
   bestPractices: Array<{ name: string; content: string }> = []
 ): string {
-  const auditSkills = agentSkills.filter(s => s.name.startsWith('audit/'));
-  const coreSkills = agentSkills.filter(s => !s.name.startsWith('audit/'));
 
   // Byg C-Suite og Best Practices sektionen
   const bestPracticeSection = bestPractices.length > 0
@@ -110,13 +88,9 @@ export function buildMasterPrompt(
       }).join('\n\n---\n\n')
     : '(Ingen best-practices indlæst)';
 
-  const coreSkillsSection = coreSkills.length > 0
-    ? coreSkills.map((s) => `### Skill: ${s.name}\n${s.content}`).join('\n\n---\n\n')
+  const coreSkillsSection = agentSkills.length > 0
+    ? agentSkills.map((s) => `### Skill: ${s.name}\n${s.content}`).join('\n\n---\n\n')
     : '(Ingen core skills registreret)';
-
-  const auditSkillsSection = auditSkills.length > 0
-    ? auditSkills.map((s) => `### ${s.name}\n${s.content}`).join('\n\n---\n\n')
-    : '(Ingen auditør-skills registreret)';
 
   const or = (val: string | undefined, fallback: string) =>
     (val !== undefined && val !== '') ? val : fallback;
@@ -197,10 +171,7 @@ export function buildMasterPrompt(
     `## §13 · .agents/skills/ — Platform Core Skills`,
     coreSkillsSection,
     ``,
-    `## §14 · .agents/skills/audit/ — Auditørkorps`,
-    auditSkillsSection,
-    ``,
-    `## §15 · Interne Best-Practices (C-Suite, SECURITY.md m.fl.)`,
+    `## §14 · Interne Best-Practices (C-Suite, SECURITY.md m.fl.)`,
     `Denne sektion opsætter the C-Suite Board samt kritiske systemfiler automatisk baseret på The Independence Directive.`,
     ``,
     bestPracticeSection,

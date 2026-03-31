@@ -5,6 +5,7 @@ import { InstructionSet, TabType } from '../types';
 import { getTabContent } from '../tabConfig';
 import { cn } from '../lib/utils';
 import { DiffView } from './DiffView';
+import { useTranslation } from '../contexts/LanguageContext';
 
 interface VersionHistoryPanelProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export function VersionHistoryPanel({
   userId, diffTarget, setDiffTarget,
   showConfirm, onRestore,
 }: VersionHistoryPanelProps) {
+  const { t } = useTranslation();
   return (
     <AnimatePresence>
       {isOpen && (
@@ -47,7 +49,7 @@ export function VersionHistoryPanel({
           >
             {/* Header */}
             <div className="p-6 border-b border-neutral-200 flex items-center justify-between flex-shrink-0">
-              <h3 className="font-medium text-neutral-900">Versionshistorik</h3>
+              <h3 className="font-medium text-neutral-900">{t('history.title')}</h3>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-neutral-100 rounded-md text-neutral-400 transition-colors"
@@ -60,7 +62,7 @@ export function VersionHistoryPanel({
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {versions.length === 0 && (
                 <p className="text-sm text-neutral-400 text-center py-8 italic">
-                  Ingen versioner gemt endnu.
+                  {t('history.empty')}
                 </p>
               )}
 
@@ -84,7 +86,7 @@ export function VersionHistoryPanel({
                       </span>
                       <div className="flex items-center gap-2">
                         <span className="text-sm opacity-60">
-                          {new Date(v.createdAt).toLocaleString('da-DK', {
+                          {new Date(v.createdAt).toLocaleString(t('history.date_locale'), {
                             day: '2-digit', month: '2-digit',
                             hour: '2-digit', minute: '2-digit',
                           })}
@@ -94,25 +96,25 @@ export function VersionHistoryPanel({
                             onClick={(e) => {
                               e.stopPropagation();
                               showConfirm(
-                                `Vil du gendanne v${v.version}? Dine nuværende ændringer vil blive overskrevet.`,
+                                t('history.restore_confirm').replace('{n}', v.version.toString()),
                                 () => onRestore(v)
                               );
                             }}
                             className="px-2 py-1 hover:bg-white/20 rounded text-sm font-bold uppercase tracking-wide opacity-70 hover:opacity-100 transition-opacity"
                           >
-                            Gendan
+                            {t('history.restore')}
                           </button>
                         )}
                       </div>
                     </div>
 
                     <p className="text-sm font-medium mb-1">
-                      {v.changeSummary || 'Ingen beskrivelse'}
+                      {v.changeSummary || t('history.no_summary')}
                     </p>
 
                     <div className="flex items-center gap-2 text-sm opacity-50">
                       <User size={10} />
-                      <span>{v.createdBy === userId ? 'Dig' : 'System'}</span>
+                      <span>{v.createdBy === userId ? t('history.you') : t('history.system')}</span>
                     </div>
                   </button>
 
@@ -124,7 +126,7 @@ export function VersionHistoryPanel({
                       className="overflow-hidden"
                     >
                       <div className="p-2 text-sm uppercase tracking-widest text-neutral-400 font-bold">
-                        Diff mod v{versions[idx + 1].version}
+                        {t('history.diff_against').replace('{n}', versions[idx + 1].version.toString())}
                       </div>
                       <DiffView
                         oldText={getTabContent(versions[idx + 1], activeTab)}

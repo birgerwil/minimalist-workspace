@@ -1,62 +1,63 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Target, Layers, Sparkles, ArrowRight, BookOpen, Zap } from 'lucide-react';
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
-const CORNER_FLAGS = [
-  {
-    icon: BookOpen,
-    title: 'Designdogmer',
-    description: 'Visuelle principper og interaktionsmønstre der definerer appens identitet og brugeroplevelse.',
-    example: 'Minimal Chrome, 8pt grid, semantisk farvepalette',
-  },
-  {
-    icon: Layers,
-    title: 'Arkitekturkrav',
-    description: 'Tekniske valg og strukturelle beslutninger der ikke kan kompromitteres uden at bryde helheden.',
-    example: 'Local-first data, TypeScript-first, ingen inline styles',
-  },
-  {
-    icon: Target,
-    title: 'Agent-regler',
-    description: 'Adfærdsregler og prioriteringshierarki der styrer AI-kodningsassistentens beslutninger.',
-    example: 'P1: Brugerens mål. P2: Data-hærdning. P3: Minimal Chrome.',
-  },
-  {
-    icon: Zap,
-    title: 'Kvalitetsstandarder',
-    description: 'Målbare krav til ydeevne, tilgængelighed og robusthed som koden skal overholde.',
-    example: 'INP < 200ms, 0 TypeScript-fejl, TDD-workflow',
-  },
-];
-
-const WORKFLOW_STEPS = [
-  {
-    step: '01',
-    title: 'Definer dine hjørneflag',
-    description: 'Beskriv din vision og dine non-negotiables i appen. AI\'en hjælper dig med at strukturere dem i GSD Framework-filer.',
-  },
-  {
-    step: '02',
-    title: 'Gem en versioneret snapshot',
-    description: 'Alle hjørneflag gemmes som en versioneret samling. Skift i standarderne spores over tid.',
-  },
-  {
-    step: '03',
-    title: 'Eksportér Master Prompt',
-    description: 'Workbench\'en kompilerer alle filer til én Master Prompt — klar til at blive indsat i JetBrains, VS Code eller Antigravity.',
-  },
-  {
-    step: '04',
-    title: 'AI-agenten starter med kontekst',
-    description: 'Din kodningsassistent forstår projektets rammer fra dag ét. Ingen genforklaring. Ingen afvigelser fra standarden.',
-  },
-];
+import { useTranslation } from '../contexts/LanguageContext';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function AboutView() {
+  const { t } = useTranslation();
+
+  const CORNER_FLAGS = [
+    {
+      icon: BookOpen,
+      title: t('about.flags.items.design.title'),
+      description: t('about.flags.items.design.description'),
+      example: t('about.flags.items.design.example'),
+    },
+    {
+      icon: Layers,
+      title: t('about.flags.items.arch.title'),
+      description: t('about.flags.items.arch.description'),
+      example: t('about.flags.items.arch.example'),
+    },
+    {
+      icon: Target,
+      title: t('about.flags.items.agents.title'),
+      description: t('about.flags.items.agents.description'),
+      example: t('about.flags.items.agents.example'),
+    },
+    {
+      icon: Zap,
+      title: t('about.flags.items.quality.title'),
+      description: t('about.flags.items.quality.description'),
+      example: t('about.flags.items.quality.example'),
+    },
+  ];
+
+  const WORKFLOW_STEPS = [
+    {
+      step: '01',
+      title: t('about.workflow.steps.0.title'),
+      description: t('about.workflow.steps.0.desc'),
+    },
+    {
+      step: '02',
+      title: t('about.workflow.steps.1.title'),
+      description: t('about.workflow.steps.1.desc'),
+    },
+    {
+      step: '03',
+      title: t('about.workflow.steps.2.title'),
+      description: t('about.workflow.steps.2.desc'),
+    },
+    {
+      step: '04',
+      title: t('about.workflow.steps.3.title'),
+      description: t('about.workflow.steps.3.desc'),
+    },
+  ];
+
   return (
     <div className="flex-1 overflow-y-auto bg-white">
       <div className="max-w-3xl mx-auto px-8 py-12 space-y-16">

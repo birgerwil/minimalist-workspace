@@ -25,8 +25,11 @@ import { ProjectStatus } from './components/ProjectStatus';
 import { SparringView } from './components/SparringView';
 import { ApiKeyOnboarding } from './components/ApiKeyOnboarding';
 import { useApiKey } from './hooks/useApiKey';
+import { useTranslation } from './contexts/LanguageContext';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 
 export default function App() {
+  const { t } = useTranslation();
   // ─── UI-only state (belongs here — not in hooks) ──────────────────────────
   const [activeTab, setActiveTab] = useState<TabType>('rules');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -106,9 +109,9 @@ export default function App() {
           className="max-w-md w-full text-center space-y-8"
         >
           <div className="space-y-2">
-            <h1 className="text-4xl font-light tracking-tighter text-neutral-900">AI Tuner</h1>
+            <h1 className="text-4xl font-light tracking-tighter text-neutral-900">{t('auth.title')}</h1>
             <p className="text-neutral-500 font-light">
-              Præcis styring af dine System Instructions og LLM-kontekst.
+              {t('auth.subtitle')}
             </p>
           </div>
           <button
@@ -116,7 +119,7 @@ export default function App() {
             className="w-full py-4 bg-neutral-900 text-neutral-50 rounded-full font-medium hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2 shadow-sm"
           >
             <User size={20} />
-            Log ind med Google
+            {t('auth.login_button')}
           </button>
         </motion.div>
       </div>
@@ -146,7 +149,7 @@ export default function App() {
         onSelectProject={(p) => {
           setIsCommandMenuOpen(false);
           if (isDirty) {
-            showConfirm('Du har ugemte ændringer. Vil du skifte projekt?', () => {
+            showConfirm(t('common.switch_project_confirm'), () => {
               setSelectedProject(p);
               setCurrentVersion(null);
               ai.setAiSuggestion(null);
@@ -185,7 +188,7 @@ export default function App() {
         onSelectProject={(p) => {
           if (isDirty) {
             showConfirm(
-              'Du har ugemte ændringer. Vil du skifte projekt?',
+              t('common.switch_project_confirm'),
               () => {
                 setSelectedProject(p);
                 setCurrentVersion(null);
@@ -204,7 +207,7 @@ export default function App() {
         onLogout={() => {
           if (isDirty) {
             showConfirm(
-              'Du har ugemte ændringer. Er du sikker på at du vil logge ud og miste dem?',
+              t('common.logout_confirm'),
               projects.handleLogout
             );
           } else {
@@ -225,10 +228,10 @@ export default function App() {
               {isSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
             </button>
             <h2 className="text-sm font-medium text-neutral-500">
-              {selectedProject ? selectedProject.name : 'Vælg et projekt'}
+              {selectedProject ? selectedProject.name : t('header.select_project')}
               {currentVersion && <span className="ml-2 text-neutral-400">v{currentVersion.version}</span>}
               <span className="mx-2 text-neutral-200">/</span>
-              <span className="text-neutral-900 capitalize">{viewMode}</span>
+              <span className="text-neutral-900 capitalize">{viewMode === 'om' ? t('sidebar.about') : viewMode}</span>
             </h2>
           </div>
 
@@ -240,7 +243,7 @@ export default function App() {
                 className="mr-4 p-2 hover:bg-neutral-100 rounded-md text-neutral-500 hover:text-neutral-900 transition-colors flex items-center gap-2 text-sm font-medium"
               >
                 <ArrowLeft size={18} />
-                Oversigt
+                {t('header.overview')}
               </button>
             )}
             {currentVersion && viewMode === 'advanced' && (
@@ -253,7 +256,7 @@ export default function App() {
                     setIsDirty(true);
                   }}
                   className="bg-transparent text-sm font-bold uppercase tracking-widest focus:outline-none cursor-pointer text-neutral-600 hover:text-neutral-900 transition-colors"
-                  title="Thinking Level: Bestemmer AI'ens ræsonnements-dybde"
+                  title={t('editor.thinking_level_desc')}
                 >
                   <option value="MINIMAL">Minimal</option>
                   <option value="LOW">Low</option>
@@ -266,18 +269,19 @@ export default function App() {
               onClick={syncFromFilesystem}
               disabled={!selectedProject || isSyncing}
               className="p-2 hover:bg-neutral-100 rounded-md text-neutral-500 hover:text-neutral-900 transition-colors flex items-center gap-2 text-sm"
-              title="Synkroniser indhold fra de fysiske filer på din disk"
+              title={t('header.sync_from_disk')}
             >
               <Layers size={18} className={cn(isSyncing && 'animate-spin')} />
-              Sync fra disk
+              {t('header.sync_from_disk')}
             </button>
+            <LanguageSwitcher />
             <div className="flex flex-col items-center justify-center h-full px-6 min-w-[120px] bg-neutral-50 text-neutral-400">
-              <div className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-50">Status</div>
+              <div className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-50">{t('header.status')}</div>
               <div className="flex items-center gap-2 text-sm font-medium">
                 {isDirty ? (
-                  <span className="text-amber-500">Kladder ændret</span>
+                  <span className="text-amber-500">{t('header.draft_changed')}</span>
                 ) : (
-                  <span>Sky-synkroniseret</span>
+                  <span>{t('header.synced')}</span>
                 )}
               </div>
             </div>
@@ -289,7 +293,7 @@ export default function App() {
               )}
             >
               <History size={18} />
-              Historik
+              {t('header.history')}
             </button>
 
           </div>
@@ -366,7 +370,7 @@ export default function App() {
                 setCurrentVersion(v);
                 setIsHistoryOpen(false);
                 setIsDirty(false);
-                toast.success(`Gendannet v${v.version}`);
+                toast.success(t('toasts.version_restored').replace('{n}', v.version.toString()));
               }}
             />
           </div>
@@ -374,7 +378,7 @@ export default function App() {
           <div className="flex-1 flex items-center justify-center text-neutral-300 bg-white">
             <div className="text-center space-y-4">
               <Layers size={48} className="mx-auto opacity-10" />
-              <p className="text-sm">Vælg et projekt fra menuen til venstre for at starte.</p>
+              <p className="text-sm">{t('empty_state.select_project_hint')}</p>
             </div>
           </div>
         )}
@@ -412,11 +416,11 @@ export default function App() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white border border-neutral-200 p-8 rounded-2xl w-full max-w-md relative z-10 shadow-2xl"
             >
-              <h3 className="text-xl font-medium mb-6 text-neutral-900">Nyt Projekt</h3>
+              <h3 className="text-xl font-medium mb-6 text-neutral-900">{t('modals.new_project_title')}</h3>
               <input
                 autoFocus
                 type="text"
-                placeholder="Projektets navn..."
+                placeholder={t('modals.new_project_placeholder')}
                 value={projects.newProjectName}
                 onChange={(e) => projects.setNewProjectName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && projects.createProject()}
@@ -427,13 +431,13 @@ export default function App() {
                   onClick={() => projects.setIsNewProjectModalOpen(false)}
                   className="flex-1 py-3 text-sm font-medium text-neutral-400 hover:text-neutral-600 transition-colors"
                 >
-                  Annuller
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={projects.createProject}
                   className="flex-1 py-3 bg-neutral-900 text-neutral-50 rounded-xl text-sm font-medium hover:bg-neutral-800 transition-colors shadow-sm"
                 >
-                  Opret
+                  {t('modals.create')}
                 </button>
               </div>
             </motion.div>
@@ -456,12 +460,12 @@ export default function App() {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white border border-neutral-200 p-8 rounded-2xl w-full max-w-md relative z-10 shadow-2xl"
             >
-              <h3 className="text-xl font-medium mb-2 text-neutral-900">Gem version</h3>
-              <p className="text-sm text-neutral-500 mb-6">Beskriv hvad du har ændret i denne version.</p>
+              <h3 className="text-xl font-medium mb-2 text-neutral-900">{t('command_menu.save_version')}</h3>
+              <p className="text-sm text-neutral-500 mb-6">{t('modals.save_version_desc')}</p>
               <input
                 autoFocus
                 type="text"
-                placeholder="Fx: Tilføjet user stories til SPEC.md..."
+                placeholder={t('modals.save_version_placeholder')}
                 value={versionSummaryInput}
                 onChange={(e) => setVersionSummaryInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -477,7 +481,7 @@ export default function App() {
                   onClick={() => setPendingSaveCallback(null)}
                   className="flex-1 py-3 text-sm font-medium text-neutral-400 hover:text-neutral-600 transition-colors"
                 >
-                  Annuller
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={() => {
@@ -487,7 +491,7 @@ export default function App() {
                   className="flex-1 py-3 bg-neutral-900 text-neutral-50 rounded-xl text-sm font-medium hover:bg-neutral-800 transition-colors shadow-sm flex items-center justify-center gap-2"
                 >
                   <Save size={14} />
-                  Gem version
+                  {t('command_menu.save_version')}
                 </button>
               </div>
             </motion.div>
@@ -521,7 +525,7 @@ export default function App() {
                   onClick={() => setConfirmModal(null)}
                   className="flex-1 py-3 text-sm font-medium text-neutral-400 hover:text-neutral-600 transition-colors"
                 >
-                  Annuller
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={() => {
@@ -530,7 +534,7 @@ export default function App() {
                   }}
                   className="flex-1 py-3 bg-neutral-900 text-neutral-50 rounded-xl text-sm font-medium hover:bg-neutral-800 transition-colors shadow-sm"
                 >
-                  Bekræft
+                  {t('common.confirm')}
                 </button>
               </div>
             </motion.div>

@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, ArrowLeft, Check, Plus, X, Loader2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { InstructionSet } from '../types';
 import { cn } from '../lib/utils';
+import { useApiKey } from '../hooks/useApiKey';
+import { useTranslation } from '../contexts/LanguageContext';
 import {
   useWizard,
   PLATFORM_OPTIONS,
@@ -32,7 +34,14 @@ interface ProjectWizardProps {
 // ─── Step indicator ────────────────────────────────────────────────────────────
 
 function StepIndicator({ current }: { current: number }) {
-  const steps = ['Vision', 'Afklaring', 'Præferencer', 'Hjørneflag', 'Generering'];
+  const { t } = useTranslation();
+  const steps = [
+    t('wizard.steps.vision'),
+    t('wizard.steps.clarify'),
+    t('wizard.steps.prefs'),
+    t('wizard.steps.flags'),
+    t('wizard.steps.generate')
+  ];
   return (
     <div className="flex items-center gap-0">
       {steps.map((label, idx) => {
@@ -129,48 +138,51 @@ function FlagChip({
 // ─── Step 1: Vision ────────────────────────────────────────────────────────────
 
 function Step1Vision({ wizard }: { wizard: ReturnType<typeof useWizard> }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <h2 className="text-2xl font-light text-neutral-900 tracking-tight">Hvad vil du bygge?</h2>
+        <h2 className="text-2xl font-light text-neutral-900 tracking-tight">{t('wizard.step1.title')}</h2>
         <p className="text-sm text-neutral-500 leading-relaxed">
-          Lad os bryde din idé ned i kernebehov, reference-værktøjer og UI inspiration. Det tvinger mere præcise svar ud af AI'en.
+          {t('wizard.step1.desc')}
         </p>
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">1. Kernebehovet</h3>
+        <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">{t('wizard.step1.needs_label')}</h3>
         <textarea
           value={wizard.vision}
           onChange={(e) => wizard.setVision(e.target.value)}
-          placeholder={`Fx: "Jeg vil bygge en intern app til mit lille bageri for at styre dagens bestillinger. Vigtigst er at det er hurtigt at lære."`}
+          placeholder={t('wizard.step1.needs_placeholder')}
           rows={5}
           autoFocus
           className="w-full px-4 py-3 text-sm text-neutral-900 placeholder-neutral-300 bg-neutral-50 border border-neutral-200 rounded-xl resize-none focus:outline-none focus:border-neutral-400 focus:bg-white transition-all leading-relaxed"
         />
         <div className="flex items-center justify-between">
           <span className={cn('text-sm', wizard.vision.length < 30 ? 'text-neutral-300' : 'text-neutral-400')}>
-            {wizard.vision.length < 30 ? `Mindst ${30 - wizard.vision.length} tegn mere i kernebehovet for at fortsætte` : `${wizard.vision.length} tegn — godt!`}
+            {wizard.vision.length < 30 
+              ? t('wizard.step1.needs_min_chars').replace('{n}', (30 - wizard.vision.length).toString())
+              : t('wizard.step1.needs_good').replace('{n}', wizard.vision.length.toString())}
           </span>
         </div>
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">2. Funktionel Reference (A la tools)</h3>
+        <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">{t('wizard.step1.ref_label')}</h3>
         <input
           value={wizard.functionalCompetitors}
           onChange={(e) => wizard.setFunctionalCompetitors(e.target.value)}
-          placeholder="Fx: Det skal fungere lidt ligesom Trello eller Jira, bare simplere..."
+          placeholder={t('wizard.step1.ref_placeholder')}
           className="w-full px-4 py-3 text-sm text-neutral-900 placeholder-neutral-300 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:border-neutral-400 focus:bg-white transition-all"
         />
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">3. UI Design Referencer</h3>
+        <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">{t('wizard.step1.ui_label')}</h3>
         <input
           value={wizard.uiReferences}
           onChange={(e) => wizard.setUiReferences(e.target.value)}
-          placeholder="Fx: Jeg elsker hvordan Linear og Stripe ser ud. Ret minimalistisk."
+          placeholder={t('wizard.step1.ui_placeholder')}
           className="w-full px-4 py-3 text-sm text-neutral-900 placeholder-neutral-300 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:border-neutral-400 focus:bg-white transition-all"
         />
       </div>
@@ -189,21 +201,22 @@ function Step2Preferences({
   setPreference: ReturnType<typeof useWizard>['setPreference'];
   togglePlatform: ReturnType<typeof useWizard>['togglePlatform'];
 }) {
+  const { t, language } = useTranslation();
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <h2 className="text-2xl font-light text-neutral-900 tracking-tight">Et par præferencer</h2>
+        <h2 className="text-2xl font-light text-neutral-900 tracking-tight">{t('wizard.step2.title')}</h2>
         <p className="text-sm text-neutral-500">
-          Disse valg former de tekniske krav og begrænsninger. Du kan se konsekvenserne af hvert valg.
+          {t('wizard.step2.desc')}
         </p>
       </div>
 
       {/* Platform — MULTI-SELECT (toggle) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">Platform</h3>
+          <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">{t('wizard.step2.platform')}</h3>
           {preferences.platforms.length > 1 && (
-            <span className="text-sm text-amber-600 font-medium">Multi-platform — AI tilpasser stack og agents</span>
+            <span className="text-sm text-amber-600 font-medium">{t('wizard.step2.platform_multi')}</span>
           )}
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -223,7 +236,7 @@ function Step2Preferences({
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{opt.icon}</span>
-                    <span className="text-sm font-medium">{opt.label}</span>
+                    <span className="text-sm font-medium">{t(`wizard.options.platforms.${key}.label`)}</span>
                     {selected && <Check size={14} className="ml-auto" />}
                   </div>
                 </button>
@@ -244,9 +257,9 @@ function Step2Preferences({
               {preferences.platforms.map((p) => (
                 <ConsequenceCard
                   key={p}
-                  label={PLATFORM_OPTIONS[p].label}
-                  pros={[...PLATFORM_OPTIONS[p].pros]}
-                  cons={[...PLATFORM_OPTIONS[p].cons]}
+                  label={t(`wizard.options.platforms.${p}.label`)}
+                  pros={t(`wizard.options.platforms.${p}.pros`) as any}
+                  cons={t(`wizard.options.platforms.${p}.cons`) as any}
                   stack={PLATFORM_OPTIONS[p].stack}
                 />
               ))}
@@ -257,7 +270,7 @@ function Step2Preferences({
 
       {/* Scale */}
       <div className="space-y-3">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">Hvem bruger den?</h3>
+        <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">{t('wizard.step2.scale')}</h3>
         <div className="grid grid-cols-3 gap-2">
           {(Object.entries(SCALE_OPTIONS) as [ScaleKey, (typeof SCALE_OPTIONS)[ScaleKey]][]).map(([key, opt]) => (
             <button
@@ -271,7 +284,9 @@ function Step2Preferences({
               )}
             >
               <span className="text-xl">{opt.icon}</span>
-              <p className={cn('text-sm font-semibold mt-2', preferences.scale === key ? 'text-white' : 'text-neutral-900')}>{opt.label}</p>
+              <p className={cn('text-sm font-semibold mt-2', preferences.scale === key ? 'text-white' : 'text-neutral-900')}>
+                {t(`wizard.options.scale.${key}.label`)}
+              </p>
             </button>
           ))}
         </div>
@@ -283,7 +298,7 @@ function Step2Preferences({
               exit={{ opacity: 0 }}
               className="p-3 bg-neutral-50 rounded-xl border border-neutral-100 text-sm text-neutral-600 leading-relaxed"
             >
-              {SCALE_OPTIONS[preferences.scale].description}
+              {t(`wizard.options.scale.${preferences.scale}.desc`)}
             </motion.div>
           )}
         </AnimatePresence>
@@ -291,7 +306,7 @@ function Step2Preferences({
 
       {/* Tempo */}
       <div className="space-y-3">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">Udviklingstempo</h3>
+        <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">{t('wizard.step2.tempo')}</h3>
         <div className="grid grid-cols-2 gap-2">
           {(Object.entries(TEMPO_OPTIONS) as [TempoKey, (typeof TEMPO_OPTIONS)[TempoKey]][]).map(([key, opt]) => (
             <button
@@ -305,7 +320,9 @@ function Step2Preferences({
               )}
             >
               <span className="text-xl">{opt.icon}</span>
-              <p className={cn('text-sm font-semibold mt-2', preferences.tempo === key ? 'text-white' : 'text-neutral-900')}>{opt.label}</p>
+              <p className={cn('text-sm font-semibold mt-2', preferences.tempo === key ? 'text-white' : 'text-neutral-900')}>
+                {t(`wizard.options.tempo.${key}.label`)}
+              </p>
             </button>
           ))}
         </div>
@@ -317,7 +334,7 @@ function Step2Preferences({
               exit={{ opacity: 0 }}
               className="p-3 bg-neutral-50 rounded-xl border border-neutral-100 text-sm text-neutral-600 leading-relaxed"
             >
-              {TEMPO_OPTIONS[preferences.tempo].description}
+              {t(`wizard.options.tempo.${preferences.tempo}.desc`)}
             </motion.div>
           )}
         </AnimatePresence>
@@ -326,13 +343,13 @@ function Step2Preferences({
       {/* Optional stack note */}
       <div className="space-y-2">
         <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">
-          Specifikt tech-ønske <span className="font-normal text-neutral-300">(valgfrit)</span>
+          {t('wizard.step2.custom_stack')}
         </h3>
         <input
           type="text"
           value={preferences.customStack}
           onChange={(e) => setPreference('customStack', e.target.value)}
-          placeholder="Fx: Vi bruger allerede Supabase, eller: Skal bygges i Python"
+          placeholder={t('wizard.step2.custom_stack_placeholder')}
           className="w-full px-4 py-3 text-sm bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:border-neutral-400 transition-all"
         />
       </div>
@@ -340,7 +357,7 @@ function Step2Preferences({
       {/* UI Design Philosophy */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">
-          Design Filosofi <span className="font-normal text-neutral-300">(valgfrit)</span>
+          {t('wizard.step2.philosophy')}
         </h3>
         <div className="grid grid-cols-2 gap-2">
           {(Object.entries(UI_PHILOSOPHY_OPTIONS) as [UIPhilosophyKey, (typeof UI_PHILOSOPHY_OPTIONS)[UIPhilosophyKey]][]).map(([key, opt]) => {
@@ -393,7 +410,7 @@ function Step2Preferences({
                 </div>
                 <div className="pt-2 border-t border-neutral-100">
                   <p className="text-sm text-neutral-400">
-                    <span className="font-medium text-neutral-500">Inspiration:</span> {p.inspiration}
+                    <span className="font-medium text-neutral-500">{t('wizard.step2.inspiration')}</span> {p.inspiration}
                   </p>
                 </div>
               </motion.div>
@@ -470,6 +487,7 @@ function AIFlagInput({
   type: 'must' | 'never';
 }) {
   const [isPolishing, setIsPolishing] = useState(false);
+  const { t, language } = useTranslation();
 
   const handlePolish = async () => {
     if (!value.trim()) return;
@@ -477,10 +495,12 @@ function AIFlagInput({
     try {
       // Call the Gemini API directly inline — avoids circular import
       const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-      if (!apiKey) throw new Error('Ingen API-nøgle');
+      if (!apiKey) throw new Error('No API key');
+      
+      const langName = language === 'da' ? 'dansk' : 'engelsk';
       const prompt = type === 'must'
-        ? `Du er en senior software arkitekt. Omformulér dette SKAL-krav til ét skarpt, konkret teknisk princip på dansk (maks 10 ord, ingen punktum til sidst): "${value}". Returner kun den omformulerede tekst.`
-        : `Du er en senior software arkitekt. Omformulér dette ALDRIG-forbud til ét skarpt, konkret teknisk forbud på dansk (maks 10 ord, ingen punktum til sidst): "${value}". Returner kun den omformulerede tekst.`;
+        ? `Du er en senior software arkitekt. Omformulér dette SKAL-krav til ét skarpt, konkret teknisk princip på ${langName} (maks 10 ord, ingen punktum til sidst): "${value}". Returner kun den omformulerede tekst.`
+        : `Du er en senior software arkitekt. Omformulér dette ALDRIG-forbud til ét skarpt, konkret teknisk forbud på ${langName} (maks 10 ord, ingen punktum til sidst): "${value}". Returner kun den omformulerede tekst.`;
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -511,11 +531,11 @@ function AIFlagInput({
           type="button"
           onClick={handlePolish}
           disabled={isPolishing || !value.trim()}
-          title="Lad AI omformulere dit krav til et præcist princip"
+          title={t('wizard.step3.ai_polish')}
           className="px-3 py-2 bg-white border border-neutral-200 rounded-lg text-sm text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 transition-colors disabled:opacity-40 flex items-center gap-1.5"
         >
           {isPolishing ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
-          {isPolishing ? 'Polerer…' : 'AI-polish'}
+          {isPolishing ? t('wizard.step3.polishing') : t('wizard.step3.ai_polish')}
         </button>
         <button
           type="button"
@@ -539,6 +559,7 @@ function Step3Flags({
   neverFlags: string[]; toggleNeverFlag: (f: string) => void;
   customNever: string; setCustomNever: (v: string) => void; addCustomNeverFlag: () => void;
 }) {
+  const { t } = useTranslation();
   // Group suggestions by category
   const mustByCategory = MUST_FLAG_SUGGESTIONS.reduce<Record<string, FlagSuggestion[]>>((acc, f) => {
     (acc[f.category] ??= []).push(f);
@@ -558,11 +579,11 @@ function Step3Flags({
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <h2 className="text-2xl font-light text-neutral-900 tracking-tight">Hjørneflag</h2>
+        <h2 className="text-2xl font-light text-neutral-900 tracking-tight">{t('wizard.step3.title')}</h2>
         <p className="text-sm text-neutral-500 leading-relaxed">
-          Vælg dine absolutte love. AI'en bruger disse som non-negotiable krav i alle genererede filer.
+          {t('wizard.step3.desc')}
           <br />
-          <span className="text-neutral-400">Ingen valg er fint — AI'en får blot friere fortolkningsrum.</span>
+          <span className="text-neutral-400">{t('wizard.step3.desc_note')}</span>
         </p>
       </div>
 
@@ -570,9 +591,9 @@ function Step3Flags({
       <div className="space-y-5">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-green-500" />
-          <h3 className="text-sm font-semibold text-neutral-900">SKAL altid gælde</h3>
+          <h3 className="text-sm font-semibold text-neutral-900">{t('wizard.step3.must_title')}</h3>
           {mustFlags.length > 0 && (
-            <span className="ml-auto text-sm text-neutral-400">{mustFlags.length} valgt</span>
+            <span className="ml-auto text-sm text-neutral-400">{t('wizard.step3.selected').replace('{n}', mustFlags.length.toString())}</span>
           )}
         </div>
 
@@ -610,9 +631,9 @@ function Step3Flags({
       <div className="space-y-5">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-red-400" />
-          <h3 className="text-sm font-semibold text-neutral-900">MÅ ALDRIG ske</h3>
+          <h3 className="text-sm font-semibold text-neutral-900">{t('wizard.step3.never_title')}</h3>
           {neverFlags.length > 0 && (
-            <span className="ml-auto text-sm text-neutral-400">{neverFlags.length} valgt</span>
+            <span className="ml-auto text-sm text-neutral-400">{t('wizard.step3.selected').replace('{n}', neverFlags.length.toString())}</span>
           )}
         </div>
 
@@ -665,24 +686,23 @@ function OrderRow({ icon, label, value }: { icon: string; label: string; value: 
 // The file list that will be generated
 // AI-generated files: tailored to your vision
 const AI_FILES = [
-  { name: 'SPEC.md',          label: 'Produktspecifikation',         desc: 'Vision, user stories og success criteria' },
-  { name: 'rules.md',         label: 'Systemregler',                 desc: 'Projekt-skræddersyede Causal Anchors og agent-regler' },
-  { name: 'architecture.md',  label: 'Teknisk blueprint',            desc: 'Stack, datamodel og systemarkitektur' },
-  { name: 'PLAN.md',          label: 'Projektplan',                  desc: 'Atomiske opgaver og milestones' },
-  { name: 'AGENTS.md',        label: 'AI-team konfiguration',        desc: 'Causal Anchors, agent-roller, auditørkorps og UX-regler' },
-  { name: 'testing.md',       label: 'Teststrategi',                 desc: 'Test-suites, TDD-workflow og accept-kriterier' },
-  { name: 'STATE.md',         label: 'Projektstatus',                desc: 'Beslutningslog, åbne risici og kontekst' },
-  { name: 'DESIGN.md',        label: 'Design System',                desc: 'UI-filosofi, komponentbibliotek og tokens' },
-  { name: 'SKILL.md',         label: 'Projekt-specifikke Skills',    desc: 'Kodeopskrifter og patterns skræddersyet til din vision' },
-  { name: 'llms.txt',         label: 'Master Prompt',                desc: 'Samlet AI-kontekst og projektmap til din kodeeditor' },
+  { name: 'SPEC.md',          key: 'spec' },
+  { name: 'rules.md',         key: 'rules' },
+  { name: 'architecture.md',  key: 'arch' },
+  { name: 'PLAN.md',          key: 'plan' },
+  { name: 'AGENTS.md',        key: 'agents' },
+  { name: 'testing.md',       key: 'testing' },
+  { name: 'STATE.md',         key: 'state' },
+  { name: 'DESIGN.md',        key: 'design' },
+  { name: 'SKILL.md',         key: 'skills' },
+  { name: 'llms.txt',         key: 'llms' },
 ];
 
-// Universal baseline files: valuable for every project — installed automatically
 const BASELINE_FILES = [
-  { name: 'workflows.md',     label: 'Workflows',         desc: 'Index over kanoniske processer og UX_FLOWS til alle agenter' },
-  { name: 'CHANGELOG.md',     label: 'Changelog',         desc: 'Versionsoversigt og breaking changes — standard i alle projekter' },
-  { name: 'CONTRIBUTING.md',  label: 'Bidragsvejledning', desc: 'Kodestil, branch-navngivning og PR-regler for teamet' },
-  { name: 'SECURITY.md',      label: 'Sikkerhedspolitik', desc: 'Ansvarlig fremlæggelse af sikkerhedsproblemer' },
+  { name: 'workflows.md',     key: 'workflows' },
+  { name: 'CHANGELOG.md',     key: 'changelog' },
+  { name: 'CONTRIBUTING.md',  key: 'contributing' },
+  { name: 'SECURITY.md',      key: 'security' },
 ];
 
 // Combined for backward compat where needed
@@ -705,6 +725,7 @@ function Step4Generate({
   setIsDirty: (v: boolean) => void;
   onComplete: () => void;
 }) {
+  const { t } = useTranslation();
   const [confirmed, setConfirmed] = useState(false);
 
   const allDone = wizard.generationSteps.every((s) => s.status === 'done' || s.status === 'error');
@@ -721,12 +742,12 @@ function Step4Generate({
       <div className="space-y-6">
         <div className="space-y-2">
           <h2 className="text-2xl font-light text-neutral-900 tracking-tight">
-            {allDone ? '✅ Generering færdig' : 'Genererer…'}
+            {allDone ? t('wizard.step4.done_title') : t('wizard.step4.generating_title')}
           </h2>
           <p className="text-sm text-neutral-500">
             {allDone
-              ? 'Alle filer er klar. AI-sparring starter nu.'
-              : 'Luk ikke vinduet — det tager typisk 30–60 sekunder.'}
+              ? t('wizard.step4.done_desc')
+              : t('wizard.step4.generating_desc')}
           </p>
         </div>
 
@@ -773,9 +794,9 @@ function Step4Generate({
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-1">
-        <h2 className="text-2xl font-light text-neutral-900 tracking-tight">Bekræft din AI-ordre</h2>
+        <h2 className="text-2xl font-light text-neutral-900 tracking-tight">{t('wizard.step4.title')}</h2>
         <p className="text-sm text-neutral-500">
-          Gennemse hvad du er ved at bestille — du kan gå tilbage og justere noget som helst.
+          {t('wizard.step4.desc')}
         </p>
       </div>
 
@@ -784,7 +805,7 @@ function Step4Generate({
 
         <OrderRow
           icon="📋"
-          label="Projekt"
+          label={t('wizard.step4.project_label')}
           value={
             <span>
               <span className="font-semibold">{projectName}</span>
@@ -792,7 +813,7 @@ function Step4Generate({
               {wizard.vision.slice(0, 130)}{wizard.vision.length > 130 ? '…' : ''}
               {clarifyCount > 0 && (
                 <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 bg-neutral-100 rounded-full text-sm text-neutral-500">
-                  <Sparkles size={10} /> {clarifyCount} AI-afklaringer
+                  <Sparkles size={10} /> {t('wizard.step4.ai_clarifications').replace('{n}', clarifyCount.toString())}
                 </span>
               )}
             </span>
@@ -801,13 +822,13 @@ function Step4Generate({
 
         <OrderRow
           icon="🖥️"
-          label="Platform & skala"
+          label={t('wizard.summary.platform_scale')}
           value={`${platformNames} · ${scaleName} · ${tempoName}`}
         />
 
         <OrderRow
           icon="🎨"
-          label="Design System"
+          label={t('wizard.summary.design_system')}
           value={
             philosophy ? (
               <span>
@@ -816,22 +837,22 @@ function Step4Generate({
                 <span className="italic text-neutral-500">{philosophy.tagline}</span>
               </span>
             ) : (
-              <span className="text-neutral-400 italic">Ingen filosofi valgt — generisk DESIGN.md</span>
+              <span className="text-neutral-400 italic">{t('wizard.summary.no_philosophy')}</span>
             )
           }
         />
 
         <OrderRow
           icon="⚖️"
-          label="Hjørneflag"
+          label={t('wizard.summary.flags')}
           value={
             wizard.mustFlags.length === 0 && wizard.neverFlags.length === 0
-              ? <span className="text-neutral-400 italic">Ingen hjørneflag sat</span>
+              ? <span className="text-neutral-400 italic">{t('wizard.summary.no_flags')}</span>
               : (
                 <div className="space-y-2 mt-1">
                   {wizard.mustFlags.length > 0 && (
                     <div className="space-y-1">
-                      <p className="text-sm font-bold uppercase tracking-widest text-green-700">SKAL</p>
+                      <p className="text-sm font-bold uppercase tracking-widest text-green-700">{t('wizard.summary.must')}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {wizard.mustFlags.map((f) => (
                           <span key={f} className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 border border-green-200 rounded-md text-sm text-green-800">
@@ -843,7 +864,7 @@ function Step4Generate({
                   )}
                   {wizard.neverFlags.length > 0 && (
                     <div className="space-y-1">
-                      <p className="text-sm font-bold uppercase tracking-widest text-red-600">ALDRIG</p>
+                      <p className="text-sm font-bold uppercase tracking-widest text-red-600">{t('wizard.summary.never')}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {wizard.neverFlags.map((f) => (
                           <span key={f} className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
@@ -860,7 +881,7 @@ function Step4Generate({
 
         <OrderRow
           icon="📦"
-          label={`${GENERATED_FILES.length} filer oprettes i dette projekt`}
+          label={t('wizard.summary.files_to_create').replace('{n}', GENERATED_FILES.length.toString())}
           value={
             <div className="space-y-4 mt-2">
 
@@ -869,7 +890,7 @@ function Step4Generate({
                 <div className="flex items-center gap-2">
                   <Sparkles size={11} className="text-neutral-500" />
                   <p className="text-sm font-bold uppercase tracking-widest text-neutral-500">
-                    {AI_FILES.length} AI-genererede — skræddersyet til dit projekt
+                    {t('wizard.generate_files.ai_title').replace('{n}', AI_FILES.length.toString())}
                   </p>
                 </div>
                 <div className="rounded-xl border border-neutral-200 divide-y divide-neutral-100 overflow-hidden">
@@ -877,8 +898,8 @@ function Step4Generate({
                     <div key={f.name} className="flex items-start gap-3 px-3 py-2 bg-white">
                       <span className="font-mono text-sm text-neutral-700 font-semibold w-32 flex-shrink-0 pt-0.5">{f.name}</span>
                       <div>
-                        <p className="text-sm text-neutral-700 font-medium">{f.label}</p>
-                        <p className="text-sm text-neutral-400">{f.desc}</p>
+                        <p className="text-sm text-neutral-700 font-medium">{t(`wizard.generate_files.ai.${f.key}.label`)}</p>
+                        <p className="text-sm text-neutral-400">{t(`wizard.generate_files.ai.${f.key}.desc`)}</p>
                       </div>
                     </div>
                   ))}
@@ -890,60 +911,26 @@ function Step4Generate({
                 <div className="flex items-center gap-2">
                   <span className="text-sm">🌐</span>
                   <p className="text-sm font-bold uppercase tracking-widest text-neutral-500">
-                    {BASELINE_FILES.length} universelle baseline-filer — gavner ethvert projekt
+                    {t('wizard.generate_files.baseline_title').replace('{n}', BASELINE_FILES.length.toString())}
                   </p>
                 </div>
                 <p className="text-sm text-neutral-400 leading-relaxed">
-                  Disse filer er branchestandarder som alle projekter bør have fra dag ét.
-                  De installeres automatisk og er klar til at tilpasse.
+                  {t('wizard.generate_files.baseline_desc')}
                 </p>
                 <div className="rounded-xl border border-blue-100 bg-blue-50/30 divide-y divide-blue-100 overflow-hidden">
                   {BASELINE_FILES.map((f) => (
                     <div key={f.name} className="flex items-start gap-3 px-3 py-2">
                       <span className="font-mono text-sm text-blue-700 font-semibold w-32 flex-shrink-0 pt-0.5">{f.name}</span>
                       <div>
-                        <p className="text-sm text-neutral-700 font-medium">{f.label}</p>
-                        <p className="text-sm text-neutral-400">{f.desc}</p>
+                        <p className="text-sm text-neutral-700 font-medium">{t(`wizard.generate_files.baseline.${f.key}.label`)}</p>
+                        <p className="text-sm text-neutral-400">{t(`wizard.generate_files.baseline.${f.key}.desc`)}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Auditørkorps */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">🔎</span>
-                  <p className="text-sm font-bold uppercase tracking-widest text-neutral-500">
-                    Auditørkorps — aktiveret via <code className="font-mono text-amber-600 bg-amber-50 px-1 rounded">/audit</code>
-                  </p>
-                </div>
-                <p className="text-sm text-neutral-400 leading-relaxed">
-                  Et hierarkisk korps af 9 specialister installeret automatisk i <code className="font-mono text-neutral-500">.agents/skills/audit/</code>.
-                  Chef Auditøren triagerer og delegerer — aldrig mere end 3 specialister ad gangen.
-                </p>
-                <div className="rounded-xl border border-amber-200 bg-amber-50/40 overflow-hidden divide-y divide-amber-100">
-                  {[
-                    { cmd: '/audit',             label: 'Chef Auditør',        desc: 'Triage + orchestrering — delegerer til relevante specialister' },
-                    { cmd: '/audit ux',          label: 'UX Auditør',          desc: 'Interaction Fluency og UI/Docs alignment' },
-                    { cmd: '/audit docs',        label: 'Docs Auditør',        desc: 'Placeholder-tjek, cross-reference og terminologi' },
-                    { cmd: '/audit sikkerhed',   label: 'Sikkerhedsauditør',   desc: 'Firestore-regler, env vars, PII/GDPR, CVE\'er' },
-                    { cmd: '/audit api',         label: 'API Auditør',         desc: 'npm-sundhed, fetch, Firestore-queries, Gemini API' },
-                    { cmd: '/audit arkitektur',  label: 'Arkitektur Auditør',  desc: 'Drift, lag-violations, vendor lock-in' },
-                    { cmd: '/audit performance', label: 'Performance Auditør', desc: 'Core Web Vitals 2025, bundle-size, render, memory leaks' },
-                    { cmd: '/audit test',        label: 'Test Auditør',        desc: 'TDD-compliance, coverage-gaps, CI/CD pipeline' },
-                    { cmd: '(automatisk)',       label: 'Corpus Auditør',      desc: 'CSI — korpsets selvforbedring, kører stille som trin 5' },
-                  ].map((a) => (
-                    <div key={a.cmd} className="flex items-start gap-3 px-3 py-2">
-                      <code className="font-mono text-sm text-amber-700 font-semibold w-36 flex-shrink-0 pt-0.5">{a.cmd}</code>
-                      <div>
-                        <p className="text-sm text-neutral-700 font-medium">{a.label}</p>
-                        <p className="text-sm text-neutral-400">{a.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+
 
             </div>
           }
@@ -957,14 +944,14 @@ function Step4Generate({
           className="flex items-center gap-2 px-5 py-3 text-sm text-neutral-500 border border-neutral-200 rounded-xl hover:border-neutral-400 hover:text-neutral-700 transition-colors"
         >
           <ArrowLeft size={14} />
-          Tilpas noget
+          {t('wizard.nav.adjust')}
         </button>
         <button
           onClick={handleConfirm}
           className="flex-1 py-3 bg-neutral-900 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-neutral-700 transition-colors"
         >
           <Sparkles size={15} />
-          Bekræft og generér {GENERATED_FILES.length} filer
+          {t('wizard.nav.confirm_generate').replace('{n}', GENERATED_FILES.length.toString())}
         </button>
       </div>
     </div>
@@ -994,6 +981,7 @@ function Step2Afklaring({
   const { clarifyingQuestions, clarificationAnswers, clarifyStep,
           isClarifying, runClarify, answerClarification,
           advanceClarifyStep, skipClarification } = wizard;
+  const { t } = useTranslation();
 
   const totalQ = clarifyingQuestions.length;
   const isDone = clarifyStep > totalQ && totalQ > 0;
@@ -1005,14 +993,15 @@ function Step2Afklaring({
     return (
       <div className="space-y-6">
         <div className="space-y-2">
-          <h2 className="text-2xl font-light text-neutral-900 tracking-tight">AI Afklaring</h2>
+          <h2 className="text-2xl font-light text-neutral-900 tracking-tight">{t('wizard.clarify.title')}</h2>
           <p className="text-sm text-neutral-500 leading-relaxed">
-            Lad AI'en stille de kritiske spørgsmål <em>inden</em> den genererer — præcis som en erfaren product strategist ville.
-            Dine svar gør SPEC.md og AGENTS.md markant skarpere.
+            {t('wizard.clarify.desc')}
+            <br />
+            {t('wizard.clarify.desc_note')}
           </p>
         </div>
         <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 text-sm text-neutral-600 leading-relaxed">
-          <p className="font-medium text-neutral-800 mb-1">Din kernevision:</p>
+          <p className="font-medium text-neutral-800 mb-1">{t('wizard.clarify.vision_label')}</p>
           <p className="text-neutral-500 italic">"{wizard.vision.slice(0, 200)}{wizard.vision.length > 200 ? '…' : ''}"</p>
         </div>
         <div className="flex gap-3">
@@ -1022,13 +1011,13 @@ function Step2Afklaring({
             className="flex-1 py-3.5 bg-neutral-900 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-neutral-700 transition-colors disabled:opacity-50"
           >
             {isClarifying ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-            {isClarifying ? 'AI analyserer din vision…' : 'Start AI-afklaring'}
+            {isClarifying ? t('wizard.clarify.analyzing') : t('wizard.clarify.start_button')}
           </button>
           <button
             onClick={skipClarification}
             className="px-5 py-3.5 text-sm text-neutral-400 hover:text-neutral-700 border border-neutral-200 rounded-xl transition-colors"
           >
-            Spring over
+            {t('wizard.nav.skip')}
           </button>
         </div>
       </div>
@@ -1040,15 +1029,15 @@ function Step2Afklaring({
     return (
       <div className="space-y-6">
         <div className="space-y-2">
-          <h2 className="text-2xl font-light text-neutral-900 tracking-tight">✅ Afklaring komplet</h2>
+          <h2 className="text-2xl font-light text-neutral-900 tracking-tight">{t('wizard.clarify.done_title')}</h2>
           <p className="text-sm text-neutral-500">
-            Dine svar er indlejret i AI-konteksten. Klik Næste for at gå til Teknisk Præference.
+            {t('wizard.clarify.done_desc')}
           </p>
         </div>
         <div className="space-y-3">
           {clarifyingQuestions.map((q) => (
             <div key={q.id} className="p-3 bg-neutral-50 rounded-xl border border-neutral-100">
-              <p className="text-sm text-neutral-400 mb-1">{CATEGORY_LABELS[q.category] ?? q.category}</p>
+              <p className="text-sm text-neutral-400 mb-1">{t(`wizard.clarify.categories.${q.category}`) || q.category}</p>
               <p className="text-sm font-medium text-neutral-700 mb-1">{q.question}</p>
               <p className="text-sm text-neutral-500 italic">→ {clarificationAnswers[q.id] ?? q.recommendation}</p>
             </div>
@@ -1091,27 +1080,27 @@ function Step2Afklaring({
           {/* Category + Question */}
           <div className="space-y-2">
             <span className="text-sm font-bold uppercase tracking-widest text-neutral-400">
-              {CATEGORY_LABELS[currentQ.category] ?? currentQ.category}
+              {t(`wizard.clarify.categories.${currentQ.category}`) || currentQ.category}
             </span>
             <p className="text-lg font-light text-neutral-900 leading-snug">{currentQ.question}</p>
           </div>
 
           {/* AI Recommendation */}
           <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1">
-            <p className="text-sm font-bold uppercase tracking-widest text-neutral-400">GSD Anbefaling</p>
+            <p className="text-sm font-bold uppercase tracking-widest text-neutral-400">{t('wizard.clarify.gsd_rec')}</p>
             <p className="text-sm text-neutral-700">{currentQ.recommendation}</p>
             <p className="text-sm text-neutral-400 mt-1 italic">{currentQ.rationale}</p>
           </div>
 
           {/* User answer */}
           <div className="space-y-2">
-            <p className="text-sm font-bold uppercase tracking-widest text-neutral-500">Dit svar (Valgfrit / Ret)</p>
+            <p className="text-sm font-bold uppercase tracking-widest text-neutral-500">{t('wizard.clarify.your_answer')}</p>
             <textarea
               value={currentAnswer}
               onChange={(e) => answerClarification(currentQ.id, e.target.value)}
               rows={3}
               className="w-full p-3 text-sm bg-white border border-neutral-200 rounded-xl resize-none focus:outline-none focus:border-neutral-400 transition-colors"
-              placeholder="Rediger eller acceptér anbefalingen ovenfor…"
+              placeholder={t('wizard.clarify.placeholder')}
             />
           </div>
 
@@ -1125,7 +1114,7 @@ function Step2Afklaring({
                 : 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
             )}
           >
-            {clarifyStep === totalQ ? 'Færdig →' : 'Gem og n snak →'}
+            {clarifyStep === totalQ ? t('wizard.clarify.save_done') : t('wizard.clarify.save_next')}
           </button>
         </motion.div>
       </AnimatePresence>
@@ -1145,6 +1134,7 @@ export function ProjectWizard({
   onSkipToAdvanced,
 }: ProjectWizardProps) {
   const wizard = useWizard();
+  const { t } = useTranslation();
 
   return (
     <div className="flex-1 overflow-y-auto bg-white">
@@ -1157,7 +1147,7 @@ export function ProjectWizard({
             onClick={onSkipToAdvanced}
             className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors whitespace-nowrap ml-6"
           >
-            Avanceret tilstand →
+            {t('wizard.nav.advanced_mode')}
           </button>
         </div>
 
@@ -1220,7 +1210,7 @@ export function ProjectWizard({
               className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-500 hover:text-neutral-900 disabled:opacity-0 transition-all"
             >
               <ArrowLeft size={14} />
-              Tilbage
+              {t('wizard.nav.back')}
             </button>
 
             {/* Step 1 CTA */}
@@ -1235,17 +1225,17 @@ export function ProjectWizard({
                     : 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
                 )}
               >
-                Næste <ArrowRight size={14} />
+                {t('wizard.nav.next')} <ArrowRight size={14} />
               </button>
             )}
 
-            {/* Step 2 (Afklaring) CTA is handled inside the Afklaring component itself if clarifying, but we need a Next button if completely done or if not started? Actually, wait. Step 2 has its own nav when asking questions. Once done, let's just let user press Næste here. */}
+            {/* Step 2 (Afklaring) CTA */}
             {wizard.step === 2 && (
               <button
                 onClick={() => wizard.setStep(3)}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all bg-neutral-900 text-white hover:bg-neutral-700"
               >
-                Næste (Præferencer) <ArrowRight size={14} />
+                {t('wizard.nav.next_prefs')} <ArrowRight size={14} />
               </button>
             )}
 

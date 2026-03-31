@@ -4,6 +4,7 @@ import { Plus, Search, Zap, Activity, Info } from 'lucide-react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { Project } from '../types';
 import { cn } from '../lib/utils';
+import { useTranslation } from '../contexts/LanguageContext';
 
 interface ProjectSidebarProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export function ProjectSidebar({
   onOpenNewProjectModal,
   onLogout,
 }: ProjectSidebarProps) {
+  const { t } = useTranslation();
   const filtered = projects.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -46,11 +48,11 @@ export function ProjectSidebar({
     >
       {/* Header */}
       <div className="p-6 flex items-center justify-between flex-shrink-0">
-        <span className="text-lg font-medium tracking-tight">Projekter</span>
+        <span className="text-lg font-medium tracking-tight">{t('sidebar.projects')}</span>
         <button
           onClick={onOpenNewProjectModal}
           className="p-1 hover:bg-neutral-100 rounded-md text-neutral-400 hover:text-neutral-900 transition-colors"
-          title="Nyt projekt"
+          title={t('sidebar.new_project')}
         >
           <Plus size={20} />
         </button>
@@ -62,7 +64,7 @@ export function ProjectSidebar({
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input
             type="text"
-            placeholder="Søg projekter..."
+            placeholder={t('sidebar.search_placeholder')}
             value={searchQuery}
             onChange={(e) => onSetSearchQuery(e.target.value)}
             className="w-full bg-white border border-neutral-200 rounded-lg py-2 pl-9 pr-4 text-sm focus:outline-none focus:border-neutral-400 transition-colors"
@@ -83,7 +85,7 @@ export function ProjectSidebar({
           )}
         >
           <Activity size={18} />
-          Oversigt
+          {t('sidebar.overview')}
         </button>
 
         {/* Om appen */}
@@ -97,12 +99,12 @@ export function ProjectSidebar({
           )}
         >
           <Info size={18} />
-          Om appen
+          {t('sidebar.about_app')}
         </button>
 
         <div className="px-2 pb-2">
           <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
-            Projekter
+            {t('sidebar.projects')}
           </span>
         </div>
 
@@ -130,7 +132,7 @@ export function ProjectSidebar({
             {selectedProject?.id === p.id && isDirty && (
               <div
                 className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0"
-                title="Ugemte ændringer"
+                title={t('status.unsaved_changes')}
               />
             )}
           </button>
@@ -138,7 +140,7 @@ export function ProjectSidebar({
 
         {filtered.length === 0 && searchQuery && (
           <p className="px-4 py-3 text-sm text-neutral-400 italic">
-            Ingen projekter matcher "{searchQuery}"
+            {t('sidebar.no_matches').replace('{n}', searchQuery)}
           </p>
         )}
       </div>
@@ -150,7 +152,7 @@ export function ProjectSidebar({
           {user.photoURL && (
             <img
               src={user.photoURL}
-              alt={user.displayName || 'Bruger'}
+              alt={user.displayName || t('common.loading')}
               className="w-8 h-8 rounded-full border border-neutral-200"
             />
           )}
@@ -162,7 +164,7 @@ export function ProjectSidebar({
               onClick={onLogout}
               className="text-neutral-500 hover:text-neutral-700 transition-colors"
             >
-              Log ud
+              {t('auth.logout')}
             </button>
           </div>
         </div>
