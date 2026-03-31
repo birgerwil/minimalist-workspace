@@ -181,6 +181,7 @@ Disse sandheder forbliver konstante gennem hele projektet. Ingen beslutning må 
 | CA-03 | Ingen native browser-dialogs (`alert`, `confirm`, `prompt`) | Brug altid styled React modal |
 | CA-04 | Dirty State detekteres ved ENHVER brugermodifikation | `setIsDirty(true)` er obligatorisk |
 | CA-05 | Minimal Chrome — intet visuelt element uden funktionelt formål | Anfør overtrædelse eksplicit og foreslå alternativ |
+| CA-09 | THE_INDEPENDENCE_DIRECTIVE — Skaberen koder aldrig sig selv | UI'ens "Save"-funktion må aldrig skrive ned i maskinrummets eget (lokale) filsystem (`docs/`). Output (Master Prompt) bygges altid client-side asynkront og renderes som "Copy to Clipboard" tekst i appen. |
 
 ---
 
