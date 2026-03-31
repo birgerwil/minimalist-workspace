@@ -1,0 +1,56 @@
+# Test 01
+
+> AI-tunet projektdokumentation — v1 — 2026-03-30
+> Generet af AI Tuner Workbench og klar til at indsætte i Antigravity / JetBrains / VS Code.
+
+## Projektdokumentation (docs/)
+
+### AI-Genererede filer (skræddersyet til projektet)
+- /docs/SPEC.md            — Vision, user stories og success criteria
+- /docs/architecture.md    — Tech stack, datamodel og systemarkitektur
+- /docs/PLAN.md            — Atomiske opgaver og milestones
+- /docs/AGENTS.md          — AI-team konfiguration og auditørkorps
+- /docs/testing.md         — Test-suites, TDD-workflow og E2E-cases
+- /docs/STATE.md           — Beslutningslog, ADR'er og åbne risici
+- /docs/DESIGN.md          — UI-filosofi, design tokens og komponentbibliotek
+- /llms.txt                — Dette dokument — komplet projektmap
+
+### Universelle Baseline-filer (pr. automatik i alle projekter)
+- /docs/rules.md           — Causal Anchors og FL-regler for AI-agenter
+- /docs/SKILL.md           — Kodeopskrifter og design tokens (Platform Codebook)
+- /docs/workflows.md       — Index over on-demand workflows og UX-flows
+- /docs/cc-log.md          — C-Suite Command Center Decision Log (/cc)
+- /docs/CHANGELOG.md       — Versionsoversigt og breaking changes
+- /docs/CONTRIBUTING.md    — Kodestil, branch-navngivning og PR-regler
+- /docs/SECURITY.md        — Ansvarlig fremlæggelse af sikkerhedsproblemer
+
+## Platform Skills (.agents/skills/)
+
+### Core Skills
+- /.agents/skills/cc/architect.md
+- /.agents/skills/cc/board.md
+- /.agents/skills/cc/compliance.md
+- /.agents/skills/cc/po.md
+- /.agents/skills/cc/qa.md
+- /.agents/skills/grill-me.md
+- /.agents/skills/pre-mortem.md
+- /.agents/skills/react-patterns.md
+- /.agents/skills/rubber-duck.md
+- /.agents/skills/ux-review.md
+
+### Auditørkorps (.agents/skills/audit/)
+
+## Aktivering
+
+| Kommando              | Funktion                                           |
+|:----------------------|:---------------------------------------------------|
+| /audit                | Chef Auditør — triage og orchestrering             |
+| /audit ux             | UX Auditør — Interaction Fluency                   |
+| /audit docs           | Docs Auditør — placeholder-tjek og konsistens      |
+| /audit sikkerhed      | Sikkerhedsauditør — Firestore, PII, CVE            |
+| /audit api            | API Auditør — npm, fetch, Firestore-queries        |
+| /audit arkitektur     | Arkitektur Auditør — lag-violations, vendor lock   |
+| /audit performance    | Performance Auditør — Core Web Vitals 2025         |
+| /audit test           | Test Auditør — TDD-compliance, coverage, CI        |
+| /audit corpus         | Corpus Auditør — CSI-loop (kører automatisk)       |
+| /audit refresh [x]    | Knowledge Refresh — opdatér specifik auditørs viden|

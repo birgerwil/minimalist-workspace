@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  // Target the custom database used by this project
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isProjectOwner(projectId) {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid;
+    }
+
+    function isValidProject(data) {
+      return data.name is string &&
+             data.name.size() > 0 &&
+             data.name.size() < 100 &&
+             data.ownerId == request.auth.uid;
+    }
+
+    function isValidVersion(data) {
+      // Only require fields that are always present in the current schema
+      return data.version is int &&
+             data.projectId is string &&
+             data.createdAt is string &&
+             data.createdBy is string;
+    }
+
+    match /projects/{projectId} {
+      allow read:   if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidProject(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+
+      // versions is a SUBCOLLECTION of projects — projectId is in scope here
+      match /versions/{versionId} {
+        allow read:   if isProjectOwner(projectId);
+        allow create: if isProjectOwner(projectId) && isValidVersion(request.resource.data);
+        allow update: if isProjectOwner(projectId);
+        allow delete: if isProjectOwner(projectId);
+      }
+    }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}

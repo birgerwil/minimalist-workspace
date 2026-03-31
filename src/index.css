@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@layer base {
+  .markdown-body table {
+    @apply w-full border-collapse my-4;
+  }
+  .markdown-body th, .markdown-body td {
+    @apply border border-neutral-200 p-3 text-left;
+  }
+  .markdown-body th {
+    @apply bg-neutral-50 font-semibold;
+  }
+  .markdown-body tr:nth-child(even) {
+    @apply bg-neutral-50/50;
+  }
+  .markdown-body h1 { @apply text-2xl font-light mb-6; }
+  .markdown-body h2 { @apply text-xl font-light mt-8 mb-4; }
+  .markdown-body h3 { @apply text-lg font-medium mt-6 mb-3; }
+  .markdown-body p { @apply mb-4 leading-relaxed; }
+  .markdown-body ul { @apply list-disc pl-6 mb-4; }
+  .markdown-body ol { @apply list-decimal pl-6 mb-4; }
+  .markdown-body hr { @apply my-8 border-neutral-100; }
+}
