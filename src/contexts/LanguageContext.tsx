@@ -21,15 +21,15 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const t = (path: string): string => {
-    const [category, key] = path.split('.');
-    const dict = translations[language];
+    const keys = path.split('.');
+    let result: any = translations[language];
     
-    if (!dict) return path;
+    for (const k of keys) {
+      if (result === undefined || result === null) return path;
+      result = result[k];
+    }
     
-    const categoryDict = (dict as any)[category];
-    if (!categoryDict) return path;
-    
-    return categoryDict[key] || path;
+    return typeof result === 'string' ? result : path;
   };
 
   return (
