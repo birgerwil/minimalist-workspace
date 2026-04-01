@@ -89,14 +89,12 @@ export function CommandMenu({
                   <Item onSelect={() => { onSelectTab('spec'); setIsOpen(false); }} icon={<FileText size={16} />} label={`SPEC.md (${t('editor.tabs.spec')})`} shortcut="S" />
                   <Item onSelect={() => { onSelectTab('plan'); setIsOpen(false); }} icon={<ListIcon size={16} />} label={`PLAN.md (${t('editor.tabs.plan')})`} shortcut="P" />
                   <Item onSelect={() => { onSelectTab('architecture'); setIsOpen(false); }} icon={<Layers size={16} />} label="ARCHITECTURE.md" shortcut="A" />
-                  <Item onSelect={() => { onSelectTab('state'); setIsOpen(false); }} icon={<HistoryIcon size={16} />} label={`STATE.md (${t('editor.tabs.state')})`} shortcut="L" />
                   <Item onSelect={() => { onSelectTab('master-prompt'); setIsOpen(false); }} icon={<Zap size={16} />} label={t('editor.tabs.master_prompt')} shortcut="M" />
                 </Command.Group>
 
                 <Command.Group heading={t('command_menu.actions_heading')} className="px-2 py-2 text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-2">
                   <Item onSelect={() => { onAction('new-project'); setIsOpen(false); }} icon={<Plus size={16} />} label={t('sidebar.new_project')} shortcut="N" />
                   <Item onSelect={() => { onAction('save'); setIsOpen(false); }} icon={<Save size={16} />} label={t('command_menu.save_version')} shortcut="Cmd+S" />
-                  <Item onSelect={() => { onAction('sync'); setIsOpen(false); }} icon={<HistoryIcon size={16} />} label={t('command_menu.sync')} />
                 </Command.Group>
 
                 {projects.length > 0 && (

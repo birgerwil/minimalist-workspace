@@ -1,24 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  ChevronRight, ChevronLeft, Save, Layers, History,
-  ArrowLeft, Zap, Sparkles, AlertCircle, User, X
+  ChevronRight, ChevronLeft, Save, Layers,
+  ArrowLeft, Zap, Sparkles, AlertCircle, User
 } from 'lucide-react';
-import { Toaster, toast } from 'sonner';
+import { Toaster } from 'sonner';
 
 import { TabType } from './types';
-import { cn } from './lib/utils';
-import { TAB_LABEL } from './tabConfig';
-
 import { useProjects } from './hooks/useProjects';
 import { useVersions } from './hooks/useVersions';
 import { useAI } from './hooks/useAI';
-import { useDiskSync } from './hooks/useDiskSync';
 
 import { CommandMenu } from './components/CommandMenu';
 import { ProjectSidebar } from './components/ProjectSidebar';
 import { WorkbenchEditor } from './components/WorkbenchEditor';
-import { VersionHistoryPanel } from './components/VersionHistoryPanel';
 import { AboutView } from './components/AboutView';
 import { ProjectWizard } from './components/ProjectWizard';
 import { ProjectStatus } from './components/ProjectStatus';
@@ -33,7 +28,6 @@ export default function App() {
   // ─── UI-only state (belongs here — not in hooks) ──────────────────────────
   const [activeTab, setActiveTab] = useState<TabType>('rules');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isCommandMenuOpen, setIsCommandMenuOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'wizard' | 'sparring' | 'status' | 'advanced' | 'om'>('wizard');
   const [isCopied, setIsCopied] = useState(false);
@@ -63,12 +57,12 @@ export default function App() {
   const versions = useVersions(user, selectedProject);
   const {
     currentVersion, setCurrentVersion, setIsDirty, isDirty,
-    isSaving, saveVersion, pendingSaveCallback, setPendingSaveCallback,
+    saveVersion, pendingSaveCallback, setPendingSaveCallback,
     versionSummaryInput, setVersionSummaryInput, isLoadingVersions,
   } = versions;
 
   // ─── TD-04: API Key check ──────────────────────────────────────────────────
-  const { hasKey, isLoading: isLoadingKey, saveKey, removeKey } = useApiKey();
+  const { hasKey, isLoading: isLoadingKey, saveKey } = useApiKey();
 
   // ─── Smart Routing (FL-01 from UX_FLOWS.md) ──────────────────────────────
   // After project loads: existing project → status, new/empty project → wizard
@@ -88,10 +82,6 @@ export default function App() {
   }, [currentVersion, isLoadingVersions, selectedProject?.id]); // eslint-disable-line
 
   const ai = useAI(activeTab, currentVersion, selectedProject, setCurrentVersion, setIsDirty);
-
-  const { isSyncing, syncFromFilesystem } = useDiskSync(
-    selectedProject, currentVersion, setCurrentVersion, setIsDirty
-  );
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -169,7 +159,6 @@ export default function App() {
         onAction={(action) => {
           if (action === 'new-project') projects.setIsNewProjectModalOpen(true);
           if (action === 'save') saveVersion();
-          if (action === 'sync') syncFromFilesystem();
         }}
       />
 
@@ -194,7 +183,6 @@ export default function App() {
                 setCurrentVersion(null);
                 ai.setAiSuggestion(null);
                 setIsDirty(false);
-                // Auto-route: existing project → status, new → wizard
               }
             );
           } else {
@@ -236,7 +224,6 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2">
-          {/* Show Workbench button only in advanced mode */}
             {viewMode === 'advanced' && (
               <button
                 onClick={() => setViewMode('status')}
@@ -266,8 +253,6 @@ export default function App() {
               </div>
             )}
             <LanguageSwitcher />
-          </div>
-        </header>
           </div>
         </header>
 
@@ -317,7 +302,7 @@ export default function App() {
                 currentVersion={currentVersion}
                 setCurrentVersion={setCurrentVersion}
                 setIsDirty={setIsDirty}
-                isLoadingVersions={versions.isLoadingVersions}
+                isLoadingVersions={isLoadingVersions}
                 ai={ai}
                 isCopied={isCopied}
                 copyToClipboard={copyToClipboard}
@@ -327,24 +312,6 @@ export default function App() {
                 setViewMode={setViewMode}
               />
             )}
-
-            <VersionHistoryPanel
-              isOpen={isHistoryOpen}
-              onClose={() => setIsHistoryOpen(false)}
-              versions={versions.versions}
-              currentVersion={currentVersion}
-              activeTab={activeTab}
-              userId={user.uid}
-              diffTarget={versions.diffTarget}
-              setDiffTarget={versions.setDiffTarget}
-              showConfirm={showConfirm}
-              onRestore={(v) => {
-                setCurrentVersion(v);
-                setIsHistoryOpen(false);
-                setIsDirty(false);
-                toast.success(t('toasts.version_restored').replace('{n}', v.version.toString()));
-              }}
-            />
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center text-neutral-300 bg-white">
@@ -372,8 +339,6 @@ export default function App() {
       </main>
 
       {/* ── Modals ── */}
-
-      {/* New Project Modal */}
       <AnimatePresence>
         {projects.isNewProjectModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
@@ -395,7 +360,9 @@ export default function App() {
                 placeholder={t('modals.new_project_placeholder')}
                 value={projects.newProjectName}
                 onChange={(e) => projects.setNewProjectName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && projects.createProject()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') projects.createProject();
+                }}
                 className="w-full bg-neutral-50 border border-neutral-200 rounded-xl p-4 text-sm focus:outline-none focus:border-neutral-400 transition-colors mb-6 text-neutral-900"
               />
               <div className="flex gap-3">
@@ -417,7 +384,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Version Summary Modal (F1.4 — replaces native prompt()) */}
       <AnimatePresence>
         {pendingSaveCallback && (
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
@@ -471,7 +437,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Confirm Modal (F1.5 — replaces native confirm()) */}
       <AnimatePresence>
         {confirmModal && (
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
