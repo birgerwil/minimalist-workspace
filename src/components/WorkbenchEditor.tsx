@@ -34,7 +34,6 @@ interface WorkbenchEditorProps {
   ai: UseAIReturn;
   isCopied: boolean;
   copyToClipboard: (text: string) => void;
-  applyTemplate: (type: TabType) => void;
   saveVersion: () => void;
   showConfirm: (message: string, onConfirm: () => void) => void;
   setViewMode: (mode: 'wizard' | 'status' | 'advanced' | 'om') => void;
@@ -99,7 +98,7 @@ export function WorkbenchEditor({
   currentVersion, setCurrentVersion, setIsDirty,
   isLoadingVersions, ai,
   isCopied, copyToClipboard,
-  applyTemplate, saveVersion, showConfirm, setViewMode,
+  saveVersion, showConfirm, setViewMode,
 }: WorkbenchEditorProps) {
   const { t } = useTranslation();
   return (

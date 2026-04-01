@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   collection, query, where, onSnapshot,
-  addDoc, orderBy, doc
+  addDoc, orderBy, doc, deleteDoc
 } from 'firebase/firestore';
 import {
   signInWithPopup, GoogleAuthProvider,
@@ -11,6 +11,7 @@ import {
 import { db, auth } from '../firebase';
 import { Project } from '../types';
 import { toast } from 'sonner';
+import { useTranslation } from '../contexts/LanguageContext';
 
 const provider = new GoogleAuthProvider();
 
@@ -55,11 +56,13 @@ export interface UseProjectsReturn {
   setIsNewProjectModalOpen: (open: boolean) => void;
   setNewProjectName: (name: string) => void;
   createProject: () => Promise<void>;
+  deleteProject: (projectId: string) => Promise<void>;
   handleLogin: () => void;
   handleLogout: () => void;
 }
 
 export function useProjects(): UseProjectsReturn {
+  const { t } = useTranslation();
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProjectState] = useState<Project | null>(null);
@@ -122,7 +125,7 @@ export function useProjects(): UseProjectsReturn {
   const createProject = async () => {
     if (!user || !newProjectName.trim()) return;
     try {
-      const docRef = await addDoc(collection(db, 'projects'), {
+      await addDoc(collection(db, 'projects'), {
         name: newProjectName.trim(),
         ownerId: user.uid,
         createdAt: new Date().toISOString(),
@@ -135,6 +138,23 @@ export function useProjects(): UseProjectsReturn {
     } catch (err) {
       const info = handleFirestoreError(err, OperationType.CREATE, 'projects');
       setConnectionError(`Kunne ikke oprette projekt: ${info.error}`);
+    }
+  };
+
+  const deleteProject = async (projectId: string) => {
+    if (!user) return;
+    try {
+      await deleteDoc(doc(db, 'projects', projectId));
+      
+      // If the deleted project was selected, clear selection
+      if (selectedProject?.id === projectId) {
+        setSelectedProject(null);
+        localStorage.removeItem('selectedProjectId');
+      }
+      
+      toast.success(t('toasts.project_deleted') || 'Projekt slettet');
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `projects/${projectId}`);
     }
   };
 
@@ -154,6 +174,7 @@ export function useProjects(): UseProjectsReturn {
     setIsNewProjectModalOpen,
     setNewProjectName,
     createProject,
+    deleteProject,
     handleLogin,
     handleLogout,
   };

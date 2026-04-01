@@ -87,6 +87,27 @@ cd ai-tuner-workbench
 **2. Installer afhængigheder & Byg applikationen:**
 ```bash
 npm install
+```
+
+**2. Opret din .env fil (KRITISK for Firebase):**
+Da vi ikke gemmer koder i koden, skal du oprette en fil med dine Firebase-oplysninger direkte på serveren:
+```bash
+nano .env
+```
+Paste følgende ind (skift "..." ud med dine egne data fra Firebase Console):
+```bash
+VITE_FIREBASE_API_KEY="..."
+VITE_FIREBASE_AUTH_DOMAIN="..."
+VITE_FIREBASE_PROJECT_ID="..."
+VITE_FIREBASE_STORAGE_BUCKET="..."
+VITE_FIREBASE_MESSAGING_SENDER_ID="..."
+VITE_FIREBASE_APP_ID="..."
+VITE_GEMINI_API_KEY="..." # Valgfrit: System-nøgle hvis brugeren ikke har sin egen
+```
+*(Tryk `Ctrl+O`, `Enter`, `Ctrl+X` for at gemme og lukke).*
+
+**3. Byg applikationen:**
+```bash
 npm run build
 ```
 
@@ -160,3 +181,22 @@ sudo certbot --nginx -d dit-domæne.dk -d www.dit-domæne.dk
 ```
 
 Certbot spørger om lidt info og genstarter selv Nginx. Dit domæne er nu grønt, sikkert, og din app er ude til det brede publikum! 🎉
+
+---
+
+## 🚀 Trin 7: Pro-Tip: RAM-Optimering (Hvis build fejler)
+
+Gratis AWS-servere (`t2.micro`) har kun 1GB RAM. Nogle gange fryser `npm run build` fordi det kræver mere hukommelse. Løsningen er at oprette en **Swap-fil** (virtuel RAM):
+
+```bash
+# Opret en 2GB swap fil
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+# Gør den permanent (valgfrit)
+echo '/swapfile lib none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+Hvis din build nogensinde fejler i fremtiden, så tjek om swap er aktiv med `free -m`.

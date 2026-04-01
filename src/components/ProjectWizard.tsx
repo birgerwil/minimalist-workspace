@@ -6,6 +6,15 @@ import { cn } from '../lib/utils';
 import { useApiKey } from '../hooks/useApiKey';
 import { useTranslation } from '../contexts/LanguageContext';
 import {
+  generateSpecFromVision,
+  generateModuleFromSpec,
+  generateDesignDoc,
+  clarifyVision,
+  ClarifyingQuestion,
+  getPolishedFlag,
+} from '../services/gemini';
+import { toast } from 'sonner';
+import {
   useWizard,
   PLATFORM_OPTIONS,
   SCALE_OPTIONS,
@@ -493,24 +502,11 @@ function AIFlagInput({
     if (!value.trim()) return;
     setIsPolishing(true);
     try {
-      // Call the Gemini API directly inline — avoids circular import
-      const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-      if (!apiKey) throw new Error('No API key');
-      
-      const langName = language === 'da' ? 'dansk' : 'engelsk';
-      const prompt = type === 'must'
-        ? `Du er en senior software arkitekt. Omformulér dette SKAL-krav til ét skarpt, konkret teknisk princip på ${langName} (maks 10 ord, ingen punktum til sidst): "${value}". Returner kun den omformulerede tekst.`
-        : `Du er en senior software arkitekt. Omformulér dette ALDRIG-forbud til ét skarpt, konkret teknisk forbud på ${langName} (maks 10 ord, ingen punktum til sidst): "${value}". Returner kun den omformulerede tekst.`;
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      });
-      const data = await res.json();
-      const polished = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      const polished = await getPolishedFlag(value, type, language);
       if (polished) onChange(polished);
-    } catch {
-      // Fail silently — user keeps their original text
+    } catch (err) {
+      console.error('[AIFlagInput] polish failed:', err);
+      toast.error(t('toasts.ai_improve_failed') || 'AI-forbedring mislykkedes');
     } finally {
       setIsPolishing(false);
     }

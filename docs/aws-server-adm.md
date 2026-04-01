@@ -25,6 +25,9 @@ cd ~/minimalist-workspace
 # Hent den nye kode
 git pull
 
+# Tjek .env (KRITISK: Mangler der variabler efter opdatering?)
+nano .env # (Tjek at VITE_FIREBASE_* er der)
+
 # Installer nye pakker (kun nødvendigt hvis package.json er ændret)
 npm install
 

@@ -39,7 +39,8 @@ Den simpleste løsning der virker er altid den rigtige løsning.
 - Kompleksitet er en omkostning der skal **retfærdiggøres aktivt**, ikke blot accepteres
 
 **P4: ARCHITECTURAL_ANCHORS**
-Local-first, Firebase (nuværende) → Tauri v2 + SQLite-WASM/OPFS (planlagt).
+100% Cloud-Native. React + Vite + Firebase Firestore.
+Intet lokalt filsystem-afhængighed for synkronisering. Forbliver i koden for fremtidig fleksibilitet, men cloud er "Single Source of Truth".
 
 **P5: CONTINUOUS_RETENTION**
 Purge aldrig projekt-DNA eller shared history.
@@ -81,7 +82,7 @@ Disse ankre forbliver konstante. Ingen beslutning må modsige dem:
 | CA-06 | Lean First — spørg altid: *"Kan systemet gøre dette, så brugeren ikke behøver?"* | Flag enhver løsning der tilføjer bruger-trin frem for system-logik |
 | CA-07 | BOARD_CONSISTENCY — 100% match mellem C-Suite filer og AboutView.tsx UI | Inkonsistens i navne/roller er en kritisk fejl — stop og ret straks |
 | CA-08 | FLOW_GUARD — Projekter uden versioner skal altid gennemgå Wizard-flow | Bypass af Wizard-flow via database-hacks er forbudt |
-| CA-09 | THE_INDEPENDENCE_DIRECTIVE — Skaberen koder aldrig sig selv | UI'ens "Save"-funktion må aldrig skrive ned i maskinrummets eget (lokale) filsystem (`docs/`). Output (Master Prompt) bygges altid client-side asynkront og renderes som "Copy to Clipboard" tekst i appen. |
+| CA-09 | THE_INDEPENDENCE_DIRECTIVE — Skaberen koder aldrig sig selv | UI'ens "Save"-funktion må aldrig skrive ned i maskinrummets eget (lokale) kildekode-system (`docs/`). Output (Master Prompt) bygges altid client-side asynkront og renderes som "Copy to Clipboard" tekst i appen. |
 
 > **Fuld designmanual:** Se `docs/DESIGN.md` for typografi-skala, 8pt grid, farvepalet, dark mode-spec, Progressive Disclosure og UX Verifikations-Checklist.
 

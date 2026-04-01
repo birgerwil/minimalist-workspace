@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Plus, Search, Zap, Activity, Info } from 'lucide-react';
+import { Plus, Search, Zap, Activity, Info, Trash2 } from 'lucide-react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { Project } from '../types';
 import { cn } from '../lib/utils';
@@ -17,6 +17,7 @@ interface ProjectSidebarProps {
   onSetSearchQuery: (q: string) => void;
   onSetViewMode: (mode: 'wizard' | 'sparring' | 'status' | 'advanced' | 'om') => void;
   onSelectProject: (project: Project) => void;
+  onDeleteProject: (projectId: string) => void;
   onOpenNewProjectModal: () => void;
   onLogout: () => void;
 }
@@ -32,6 +33,7 @@ export function ProjectSidebar({
   onSetSearchQuery,
   onSetViewMode,
   onSelectProject,
+  onDeleteProject,
   onOpenNewProjectModal,
   onLogout,
 }: ProjectSidebarProps) {
@@ -109,33 +111,45 @@ export function ProjectSidebar({
         </div>
 
         {filtered.map((p) => (
-          <button
-            key={p.id}
-            onClick={() => onSelectProject(p)}
-            className={cn(
-              'w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center gap-3 group',
-              selectedProject?.id === p.id
-                ? 'bg-neutral-200 text-neutral-900'
-                : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700'
-            )}
-          >
-            <div
+          <div key={p.id} className="relative group/item px-2">
+            <button
+              onClick={() => onSelectProject(p)}
               className={cn(
-                'w-1.5 h-1.5 rounded-full flex-shrink-0',
+                'w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center gap-3 pr-10',
                 selectedProject?.id === p.id
-                  ? 'bg-neutral-900'
-                  : 'bg-neutral-300 group-hover:bg-neutral-400'
+                  ? 'bg-neutral-200 text-neutral-900'
+                  : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700'
               )}
-            />
-            <span className="truncate">{p.name}</span>
-            {/* Dirty state indicator if this is the active project */}
-            {selectedProject?.id === p.id && isDirty && (
+            >
               <div
-                className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0"
-                title={t('status.unsaved_changes')}
+                className={cn(
+                  'w-1.5 h-1.5 rounded-full flex-shrink-0',
+                  selectedProject?.id === p.id
+                    ? 'bg-neutral-900'
+                    : 'bg-neutral-300 group-hover:bg-neutral-400'
+                )}
               />
-            )}
-          </button>
+              <span className="truncate">{p.name}</span>
+              {/* Dirty state indicator if this is the active project */}
+              {selectedProject?.id === p.id && isDirty && (
+                <div
+                  className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0"
+                  title={t('status.unsaved_changes')}
+                />
+              )}
+            </button>
+            
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteProject(p.id);
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-neutral-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover/item:opacity-100 transition-all"
+              title={t('common.delete') || 'Slet'}
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
         ))}
 
         {filtered.length === 0 && searchQuery && (

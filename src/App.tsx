@@ -192,6 +192,14 @@ export default function App() {
             setIsDirty(false);
           }
         }}
+        onDeleteProject={(projectId) => {
+          const project = projects.projects.find(p => p.id === projectId);
+          if (!project) return;
+          showConfirm(
+            t('common.delete_project_confirm') || `Er du sikker på, at du vil slette "${project.name}"? Dette kan ikke fortrydes.`,
+            () => projects.deleteProject(projectId)
+          );
+        }}
         onLogout={() => {
           if (isDirty) {
             showConfirm(
@@ -306,7 +314,6 @@ export default function App() {
                 ai={ai}
                 isCopied={isCopied}
                 copyToClipboard={copyToClipboard}
-                applyTemplate={() => {}}
                 saveVersion={saveVersion}
                 showConfirm={showConfirm}
                 setViewMode={setViewMode}

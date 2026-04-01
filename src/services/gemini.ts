@@ -23,7 +23,7 @@ export async function getImprovementSuggestions(
   content: string,
   thinkingLevel: AppThinkingLevel = AppThinkingLevel.MEDIUM
 ) {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-1.5-flash";
   const systemInstruction = `Du er en Senior Prompt Engineer & UX Architect. 
     Din opgave er at hjælpe brugeren med at skabe den perfekte "Master Prompt" og LLM-kontekst i et Google Antigravity miljø.
     
@@ -59,6 +59,27 @@ Giv mig 3-5 konkrete forbedringsforslag og en revideret version af teksten.`;
   return response.text;
 }
 
+export async function getPolishedFlag(
+  text: string,
+  type: 'must' | 'never',
+  language: string = 'da'
+): Promise<string> {
+  const model = "gemini-2.0-flash";
+  const langName = language === 'da' ? 'dansk' : 'engelsk';
+  
+  const systemInstruction = type === 'must'
+    ? `Du er en senior software arkitekt. Omformulér dette SKAL-krav til ét skarpt, konkret teknisk princip på ${langName} (maks 10 ord, ingen punktum til sidst). Returner kun den omformulerede tekst.`
+    : `Du er en senior software arkitekt. Omformulér dette ALDRIG-forbud til ét skarpt, konkret teknisk forbud på ${langName} (maks 10 ord, ingen punktum til sidst). Returner kun den omformulerede tekst.`;
+
+  const response = await getClient().models.generateContent({
+    model,
+    contents: [{ role: 'user', parts: [{ text }] }],
+    config: { systemInstruction },
+  });
+
+  return response.text?.trim() ?? text;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ClarifyingQuestion {
@@ -76,7 +97,7 @@ export async function clarifyVision(
   projectName: string,
   thinkingLevel: AppThinkingLevel = AppThinkingLevel.HIGH
 ): Promise<ClarifyingQuestion[]> {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-1.5-flash";
 
   const systemInstruction = `Du er en erfaren Product Strategist og Agentic Engineering ekspert.
 Din opgave er at analysere en brugers projektbeskrivelse og stille de mest afgørende afklarende spørgsmål.
@@ -143,7 +164,7 @@ export async function generateDesignDoc(
   philosophyLabel: string,
   thinkingLevel: AppThinkingLevel = AppThinkingLevel.HIGH
 ): Promise<string> {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-1.5-flash";
 
   const systemInstruction = `Du er en Senior UX Architect og Design System Engineer.
 Din opgave er at generere en komplet DESIGN.md for projektet "${projectName}".
@@ -217,7 +238,7 @@ export async function generateSpecFromVision(
   projectName: string,
   thinkingLevel: AppThinkingLevel = AppThinkingLevel.MEDIUM
 ) {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-1.5-flash";
   const systemInstruction = `Du er en Senior Product Designer & Spec Architect. 
     Din opgave er at transformere en brugers rå vision til en professionel SPEC.md fil.
     
@@ -262,7 +283,7 @@ export async function updateSpecFromVision(
   projectName: string,
   thinkingLevel: AppThinkingLevel = AppThinkingLevel.MEDIUM
 ) {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-1.5-flash";
   const systemInstruction = `Du er en Senior Product Designer & Spec Architect. 
     Din opgave er at opdatere en eksisterende SPEC.md fil baseret på nye input fra brugeren.
     
@@ -306,7 +327,7 @@ export async function generateModuleFromSpec(
   thinkingLevel: AppThinkingLevel = AppThinkingLevel.MEDIUM,
   wizardContext?: string   // ← full buildContextPrompt() output incl. UX principles
 ) {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-1.5-flash";
 
   const modulePrompts: Record<string, string> = {
     plan: "Skab en detaljeret eksekveringsplan (PLAN.md) med milepæle, atomiske opgaver og verificeringstrin med klare acceptance-kriterier.",
@@ -384,7 +405,7 @@ export async function updateModuleFromSpec(
   projectName: string,
   thinkingLevel: AppThinkingLevel = AppThinkingLevel.MEDIUM
 ) {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-1.5-flash";
   const systemInstruction = `Du er en Senior AI Architect & System Designer. 
     Din opgave er at opdatere et eksisterende projekt-modul (${type}) så det afspejler ændringer eller detaljer i projektets SPEC.md.
     
@@ -418,7 +439,7 @@ export async function updateModuleFromSpec(
 }
 
 export async function getWorkbenchGuide(thinkingLevel: AppThinkingLevel = AppThinkingLevel.MEDIUM) {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-1.5-flash";
   const systemInstruction = "Du er en Senior UX Writer og AI Architect. Din opgave er at skrive en omfattende, men letlæselig guide til 'AI Tuner Workbench' i et Google Antigravity miljø.";
   
   const prompt = `Skriv en guide i Markdown-format som en MATRICE (tabel), der forklarer de forskellige moduler i AI Tuner Workbench baseret på Google Antigravity og GSD Frameworket:
@@ -465,7 +486,7 @@ export async function critiqueGeneratedFiles(
   critiques: Array<{ file: string; section: string; weakness: string; whyItMatters: string; question: string; severity: string }>;
   consistencyIssues: Array<{ description: string; files: string[] }>;
 }> {
-  const model = 'gemini-3-flash-preview';
+  const model = 'gemini-1.5-flash';
   const systemInstruction = `Du er en Senior AI Architect der gennemgår nyligt genererede GSD-filer og giver ærlig, konstruktiv kritik.
 Din opgave er at identificere specifikt hvad der mangler for at en AI-agent kan præstere optimalt med disse filer som kontekst.
 
@@ -556,7 +577,7 @@ export async function refineFilesFromAnswers(
   consistencyIssues: Array<{ description: string; files: string[] }>,
   projectName: string
 ): Promise<Partial<{ spec: string; architecture: string; plan: string; agents: string; testing: string; state: string; rules: string; skills: string }>> {
-  const model = 'gemini-3-flash-preview';
+  const model = 'gemini-1.5-flash';
 
   const fileMap: Record<string, string> = {
     'SPEC.md': 'spec', 'ARCHITECTURE.md': 'architecture', 'PLAN.md': 'plan',

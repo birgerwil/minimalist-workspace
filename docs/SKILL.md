@@ -44,19 +44,8 @@ const WORKBENCH_TABS: string[] = [
 ];
 ```
 
-**4. `src/hooks/useDiskSync.ts` — Registrér fil til disk-sync**
+**4. `src/hooks/useVersions.ts` — Opdatér `compileMasterPrompt`**
 ```typescript
-const files = [
-  // ... eksisterende
-  { tab: 'my-tab', name: 'MyDoc.md' },  // ← Tilføj
-];
-```
-
-**5. `src/hooks/useVersions.ts` — Opdatér `pushToDisk` og `compileMasterPrompt`**
-```typescript
-// I pushToDisk: tilføj feltet til disk-write
-{ tab: 'my-tab', field: 'myNewField', filename: 'MyDoc.md' }
-
 // I compileMasterPrompt: tilføj sektionen
 `## MyDoc\n${version.myNewField || ''}\n\n`
 ```
@@ -94,7 +83,7 @@ export async function myNewOperation(
     Format: Markdown. Sprog: Dansk.
   `;
   const result = await client.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-1.5-flash',
     contents: prompt,
     config: { thinkingConfig: { thinkingBudget: THINKING_LEVELS[thinkingLevel] } },
   });
@@ -145,15 +134,15 @@ const handleMyNewOperation = async () => {
 ```bash
 node -e "require('./node_modules/typescript/lib/tsc.js')"  # → 0 fejl
 # Klik knappen i UI → AI genererer og indsætter indhold
-# Gem → Firestore opdateres, disk opdateres
+# Klik knappen i UI → AI genererer og indsætter indhold
+# Gem → Firestore opdateres straks
 ```
 
 ---
 
-## Skill: firebase-hook-pattern [⚠️ DEPRECATAED]
+## Skill: firebase-hook-pattern
 
-> **BEMÆRK:** Denne skill er under udfasning jf. Milestone 3 (Migration til Tauri v2 & Local-First). 
-> Firebase real-time listeners erstattes af direkte disk-I/O og SQLite fremover.
+> **Standard-mønstret** for alle React hooks der integrerer med Firebase Firestore. Dette er projektets primære persistens-lag.
 
 **Formål:** Legacy standard-mønstret for React hooks der integrerer med Firebase.
 **Input:** Hvilken Firestore-collection / Auth-event der skal observeres.

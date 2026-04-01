@@ -26,6 +26,7 @@ export const translations = {
       copy: "Kopier",
       switch_project_confirm: "Du har ugemte ændringer. Vil du skifte projekt?",
       logout_confirm: "Du har ugemte ændringer. Er du sikker på at du vil logge ud og miste dem?",
+      delete_project_confirm: "Er du sikker på, at du vil slette dette projekt? Dette kan ikke fortrydes.",
     },
     auth: {
       title: "AI Tuner",
@@ -473,6 +474,7 @@ export const translations = {
       module_gen_failed: "Kunne ikke generere {n}",
       module_updated: "{n} opdateret baseret på SPEC.md!",
       module_update_failed: "Kunne ikke opdatere {n}",
+      project_deleted: "Projekt slettet",
     },
     templates: {
       architecture_stack: "Stack",
@@ -509,6 +511,7 @@ export const translations = {
       none: "None",
       copied: "Copied!",
       copy: "Copy",
+      delete_project_confirm: "Are you sure you want to delete this project? This cannot be undone.",
     },
     auth: {
       title: "AI Tuner",
@@ -956,6 +959,7 @@ export const translations = {
       module_gen_failed: "Could not generate {n}",
       module_updated: "{n} updated based on SPEC.md!",
       module_update_failed: "Could not update {n}",
+      project_deleted: "Project deleted",
     },
     templates: {
       architecture_stack: "Stack",
