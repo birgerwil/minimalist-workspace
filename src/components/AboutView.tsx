@@ -293,12 +293,31 @@ export function AboutView() {
           transition={{ duration: 0.4, delay: 0.3 }}
           className="pb-8 border-t border-neutral-100 pt-8 space-y-3"
         >
-          <h2 className="text-sm font-bold uppercase tracking-widest text-neutral-400">Kernefilosofi</h2>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-neutral-400">{t('about.philosophy.title')}</h2>
           <p className="text-2xl font-light tracking-tight text-neutral-900 italic">
-            "Værktøjet skal forsvinde."
+            {t('about.philosophy.quote')}
           </p>
           <p className="text-sm text-neutral-500 leading-relaxed">
-            Minimal Chrome. Tastatur-first. Ingen visuel støj. Alt der eksisterer i interfacet, tjener indholdet.
+            {t('about.philosophy.desc')}
+          </p>
+        </motion.div>
+
+        {/* Forfatter Note */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.35 }}
+          className="p-8 bg-amber-50/50 rounded-2xl border border-amber-100/50 space-y-4"
+        >
+          <div className="flex items-center gap-2 text-amber-600">
+            <Sparkles size={18} />
+            <h2 className="text-sm font-bold uppercase tracking-widest">{t('about.author_note.title')}</h2>
+          </div>
+          <p className="text-base text-neutral-800 leading-relaxed font-medium">
+            {t('about.author_note.p1')}
+          </p>
+          <p className="text-sm text-neutral-600 leading-relaxed">
+            {t('about.author_note.p2')}
           </p>
         </motion.div>
 

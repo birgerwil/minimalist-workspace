@@ -265,69 +265,69 @@ export default function App() {
         </header>
 
         {/* Content area */}
-        {selectedProject ? (
-          <div className="flex-1 flex flex-col overflow-hidden">
           {viewMode === 'om' ? (
-              <AboutView />
-            ) : viewMode === 'wizard' || !currentVersion ? (
-              <ProjectWizard
-                projectName={selectedProject.name}
-                thinkingLevel={currentVersion?.thinkingLevel ?? 'MEDIUM'}
-                currentVersion={currentVersion}
-                setCurrentVersion={setCurrentVersion}
-                setIsDirty={setIsDirty}
-                onComplete={() => setViewMode('sparring')}
-                onSkipToAdvanced={() => setViewMode('advanced')}
-              />
-            ) : viewMode === 'sparring' && currentVersion ? (
-              <SparringView
-                files={currentVersion}
-                projectName={selectedProject.name}
-                setCurrentVersion={setCurrentVersion}
-                setIsDirty={setIsDirty}
-                onDone={() => setViewMode('status')}
-              />
-            ) : viewMode === 'status' ? (
-              <ProjectStatus
-                project={selectedProject}
-                currentVersion={currentVersion}
-                isDirty={isDirty}
-                onOpenWizard={() => setViewMode('wizard')}
-                onOpenAdvanced={(tab) => {
-                  if (tab) setActiveTab(tab as TabType);
-                  setViewMode('advanced');
-                }}
-                onSave={saveVersion}
-              />
-            ) : (
-              <WorkbenchEditor
-                activeTab={activeTab}
-                setActiveTab={(tab) => {
-                  setActiveTab(tab);
-                  ai.setAiSuggestion(null);
-                }}
-                projectName={selectedProject.name}
-                currentVersion={currentVersion}
-                setCurrentVersion={setCurrentVersion}
-                setIsDirty={setIsDirty}
-                isLoadingVersions={isLoadingVersions}
-                ai={ai}
-                isCopied={isCopied}
-                copyToClipboard={copyToClipboard}
-                saveVersion={saveVersion}
-                showConfirm={showConfirm}
-                setViewMode={setViewMode}
-              />
-            )}
-          </div>
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-neutral-300 bg-white">
-            <div className="text-center space-y-4">
-              <Layers size={48} className="mx-auto opacity-10" />
-              <p className="text-sm">{t('empty_state.select_project_hint')}</p>
+            <AboutView />
+          ) : selectedProject ? (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {viewMode === 'wizard' || !currentVersion ? (
+                <ProjectWizard
+                  projectName={selectedProject.name}
+                  thinkingLevel={currentVersion?.thinkingLevel ?? 'MEDIUM'}
+                  currentVersion={currentVersion}
+                  setCurrentVersion={setCurrentVersion}
+                  setIsDirty={setIsDirty}
+                  onComplete={() => setViewMode('sparring')}
+                  onSkipToAdvanced={() => setViewMode('advanced')}
+                />
+              ) : viewMode === 'sparring' && currentVersion ? (
+                <SparringView
+                  files={currentVersion}
+                  projectName={selectedProject.name}
+                  setCurrentVersion={setCurrentVersion}
+                  setIsDirty={setIsDirty}
+                  onDone={() => setViewMode('status')}
+                />
+              ) : viewMode === 'status' ? (
+                <ProjectStatus
+                  project={selectedProject}
+                  currentVersion={currentVersion}
+                  isDirty={isDirty}
+                  onOpenWizard={() => setViewMode('wizard')}
+                  onOpenAdvanced={(tab) => {
+                    if (tab) setActiveTab(tab as TabType);
+                    setViewMode('advanced');
+                  }}
+                  onSave={saveVersion}
+                />
+              ) : (
+                <WorkbenchEditor
+                  activeTab={activeTab}
+                  setActiveTab={(tab) => {
+                    setActiveTab(tab);
+                    ai.setAiSuggestion(null);
+                  }}
+                  projectName={selectedProject.name}
+                  currentVersion={currentVersion}
+                  setCurrentVersion={setCurrentVersion}
+                  setIsDirty={setIsDirty}
+                  isLoadingVersions={isLoadingVersions}
+                  ai={ai}
+                  isCopied={isCopied}
+                  copyToClipboard={copyToClipboard}
+                  saveVersion={saveVersion}
+                  showConfirm={showConfirm}
+                  setViewMode={setViewMode}
+                />
+              )}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-neutral-300 bg-white">
+              <div className="text-center space-y-4">
+                <Layers size={48} className="mx-auto opacity-10" />
+                <p className="text-sm">{t('empty_state.select_project_hint')}</p>
+              </div>
+            </div>
+          )}
 
         {/* Connection Error Banner */}
         <AnimatePresence>

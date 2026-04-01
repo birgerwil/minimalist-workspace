@@ -120,6 +120,11 @@ export const translations = {
         title: "Kernefilosofi",
         quote: "\"Værktøjet skal forsvinde.\"",
         desc: "Minimal Chrome. Tastatur-first. Ingen visuel støj. Alt der eksisterer i interfacet, tjener indholdet.",
+      },
+      author_note: {
+        title: "Forfatterens Note: Et AntiGravity Eksperiment",
+        p1: "Dette projekt er ikke bygget på traditionel vis. Det er et levende bevis på potentialet i AntiGravity-økosystemet. Hele applikationen — fra de grundlæggende arkitektur-beslutninger til det færdige UI og de avancerede AI-agenter — er skabt udelukkende ved at kommunikere med 'AntiGravity Manager'.",
+        p2: "Som bruger har jeg ikke skrevet én eneste linje kode selv. Rejsen har været en læreproces i AI-ledet produktudvikling, hvor vi har brugt artefakter som vores fælles hukommelse og 'C-Suite Boardet' som vores strategiske kompas. Dette er en POC (Proof of Concept) og en MVP (Minimum Viable Product), der viser, hvordan visioner kan transformeres til kørbar software gennem ren dialog og metodisk struktur.",
       }
     },
     wizard: {
@@ -605,6 +610,11 @@ export const translations = {
         title: "Core Philosophy",
         quote: "\"The tool should disappear.\"",
         desc: "Minimal Chrome. Keyboard-first. No visual noise. Everything that exists in the interface serves the content.",
+      },
+      author_note: {
+        title: "Author's Note: An AntiGravity Experiment",
+        p1: "This project was not built in a traditional way. It is living proof of the potential within the AntiGravity ecosystem. The entire application — from fundamental architectural decisions to the final UI and advanced AI agents — was created solely by communicating with the 'AntiGravity Manager'.",
+        p2: "As a user, I haven't written a single line of code myself. The journey has been a learning process in AI-led product development, using artifacts as our shared memory and the 'C-Suite Board' as our strategic compass. This is a POC (Proof of Concept) and an MVP (Minimum Viable Product), demonstrating how visions can be transformed into runnable software through pure dialogue and methodical structure.",
       }
     },
     wizard: {
