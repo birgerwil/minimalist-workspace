@@ -184,17 +184,14 @@ export function buildMasterPrompt(
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface UseVersionsReturn {
-  versions: InstructionSet[];
   currentVersion: InstructionSet | null;
   isLoadingVersions: boolean;
   isSaving: boolean;
   isDirty: boolean;
-  diffTarget: InstructionSet | null;
   pendingSaveCallback: ((summary: string) => void) | null;
   versionSummaryInput: string;
   setCurrentVersion: React.Dispatch<React.SetStateAction<InstructionSet | null>>;
   setIsDirty: (dirty: boolean) => void;
-  setDiffTarget: (v: InstructionSet | null) => void;
   setPendingSaveCallback: React.Dispatch<React.SetStateAction<((summary: string) => void) | null>>;
   setVersionSummaryInput: (v: string) => void;
   saveVersion: () => void;
@@ -206,14 +203,13 @@ export function useVersions(
   user: FirebaseUser | null,
   selectedProject: Project | null
 ): UseVersionsReturn {
-  const [versions, setVersions] = useState<InstructionSet[]>([]);
   const [currentVersion, setCurrentVersion] = useState<InstructionSet | null>(null);
+  const [lastVersionNumber, setLastVersionNumber] = useState(0);
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
-  const [diffTarget, setDiffTarget] = useState<InstructionSet | null>(null);
 
-  // F1.4: Inline version summary (replaces native prompt())
+  // F1.4: Inline version summary
   const [pendingSaveCallback, setPendingSaveCallback] =
     useState<((summary: string) => void) | null>(null);
   const [versionSummaryInput, setVersionSummaryInput] = useState('');
@@ -223,18 +219,18 @@ export function useVersions(
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault();
-        e.returnValue = ''; // Standard behavior for browsers to show their native confirm dialog
+        e.returnValue = '';
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
-  // Versions real-time subscription
+  // Versions real-time subscription (only care about the latest one)
   useEffect(() => {
     if (!selectedProject) {
       setCurrentVersion(null);
-      setVersions([]);
+      setLastVersionNumber(0);
       setIsLoadingVersions(false);
       return;
     }
@@ -248,15 +244,21 @@ export function useVersions(
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const v = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as InstructionSet));
-        setVersions(v);
+        if (!snapshot.empty) {
+          const latestDoc = snapshot.docs[0];
+          const v = { id: latestDoc.id, ...latestDoc.data() } as InstructionSet;
+          
+          setLastVersionNumber(v.version || 0);
 
-        if (v.length > 0) {
           setCurrentVersion((prev) => {
-            if (!prev || prev.projectId !== selectedProject.id) return v[0];
-            if (prev.id !== v[0].id && prev.version < v[0].version) return v[0];
+            // Only update if we don't have a project yet OR if a newer version arrived from another client
+            if (!prev || prev.projectId !== selectedProject.id) return v;
+            if (prev.id !== v.id && prev.version < v.version) return v;
             return prev;
           });
+        } else {
+          setCurrentVersion(null);
+          setLastVersionNumber(0);
         }
         setIsLoadingVersions(false);
       },
@@ -273,7 +275,7 @@ export function useVersions(
 
   const saveVersion = () => {
     if (!user || !selectedProject || isSaving) return;
-    if (versions.length === 0) {
+    if (lastVersionNumber === 0) {
       executeSave('Første version');
     } else {
       setVersionSummaryInput('');
@@ -285,7 +287,7 @@ export function useVersions(
     if (!user || !selectedProject) return;
     setIsSaving(true);
 
-    // Snapshot for rollback (react-patterns: Optimistic UI)
+    // Snapshot for rollback
     const previousVersion = currentVersion;
 
     try {
@@ -298,12 +300,10 @@ export function useVersions(
           agentSkills = data.skills ?? [];
         }
       } catch (skillErr) {
-        console.warn('[useVersions] Could not fetch agent skills — continuing without:', skillErr);
+        console.warn('[useVersions] Could not fetch agent skills:', skillErr);
       }
 
-      // Baseline files (rules.md, SKILL.md, workflows.md) are never AI-generated.
-      // They exist on disk but are not stored in Firestore. Load them now so
-      // §1 RULES and §2 SKILLS are never "undefined" in the Master Prompt.
+      // Baseline files loading
       const baselineFields: Array<{ field: keyof InstructionSet; filename: string }> = [
         { field: 'rules',     filename: 'rules.md'     },
         { field: 'skills',    filename: 'SKILL.md'     },
@@ -323,7 +323,7 @@ export function useVersions(
         })
       );
 
-      const newVersionNumber = (versions[0]?.version || 0) + 1;
+      const newVersionNumber = lastVersionNumber + 1;
       const base = {
         ...(currentVersion ?? {
           projectId: selectedProject.id,
@@ -335,10 +335,9 @@ export function useVersions(
           createdBy: user.uid,
           thinkingLevel: ThinkingLevel.MEDIUM,
         }),
-        ...baselineContent,  // inject loaded rules/skills/workflows
+        ...baselineContent,
       };
 
-      // Update Last-Modified on all text fields via TAB_TO_FIELD map
       const updated: Partial<InstructionSet> = {};
       for (const [, field] of Object.entries(TAB_TO_FIELD)) {
         if (typeof (base as any)[field] === 'string') {
@@ -346,12 +345,10 @@ export function useVersions(
         }
       }
 
-      // Generate a deterministic llms.txt (replaces any stale AI-generated content)
       const freshLlmsTxt = buildLlmsTxt(selectedProject.name, newVersionNumber, agentSkills);
       updated.llmsTxt = freshLlmsTxt;
 
       const masterPrompt = buildMasterPrompt(selectedProject.name, updated, newVersionNumber, agentSkills);
-
 
       const docData = {
         ...base,
@@ -363,7 +360,6 @@ export function useVersions(
         changeSummary: summary || 'Ingen beskrivelse',
       };
 
-      // Strip client-side id before writing to Firestore
       const { id: _id, ...dataToSave } = docData as any;
 
       const docRef = await addDoc(
@@ -371,21 +367,15 @@ export function useVersions(
         dataToSave
       );
 
-      // Immediately sync Firestore-generated ID to local state
       await updateDoc(doc(db, 'projects', selectedProject.id), {
         updatedAt: new Date().toISOString(),
       });
 
       setCurrentVersion({ ...docData, id: docRef.id } as InstructionSet);
-
-      // Push to disk is strictly disabled due to The Independence Directive (CA-09)
-      // We no longer mutate the host 'docs' file system to prevent cannibalization.
-
       setIsDirty(false);
-      toast.success(`Version ${newVersionNumber} gemt!`);
+      toast.success(`Gemt!`);
     } catch (err) {
-      // Rollback UI to pre-save state so user doesn't see inconsistent data
-      if (previousVersion !== undefined) setCurrentVersion(previousVersion);
+      if (previousVersion !== null) setCurrentVersion(previousVersion);
       handleFirestoreError(err, OperationType.WRITE, `projects/${selectedProject.id}/versions`);
     } finally {
       setIsSaving(false);
@@ -393,17 +383,14 @@ export function useVersions(
   };
 
   return {
-    versions,
     currentVersion,
     isLoadingVersions,
     isSaving,
     isDirty,
-    diffTarget,
     pendingSaveCallback,
     versionSummaryInput,
     setCurrentVersion,
     setIsDirty,
-    setDiffTarget,
     setPendingSaveCallback,
     setVersionSummaryInput,
     saveVersion,

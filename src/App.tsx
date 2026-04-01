@@ -265,37 +265,9 @@ export default function App() {
                 </select>
               </div>
             )}
-            <button
-              onClick={syncFromFilesystem}
-              disabled={!selectedProject || isSyncing}
-              className="p-2 hover:bg-neutral-100 rounded-md text-neutral-500 hover:text-neutral-900 transition-colors flex items-center gap-2 text-sm"
-              title={t('header.sync_from_disk')}
-            >
-              <Layers size={18} className={cn(isSyncing && 'animate-spin')} />
-              {t('header.sync_from_disk')}
-            </button>
             <LanguageSwitcher />
-            <div className="flex flex-col items-center justify-center h-full px-6 min-w-[120px] bg-neutral-50 text-neutral-400">
-              <div className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-50">{t('header.status')}</div>
-              <div className="flex items-center gap-2 text-sm font-medium">
-                {isDirty ? (
-                  <span className="text-amber-500">{t('header.draft_changed')}</span>
-                ) : (
-                  <span>{t('header.synced')}</span>
-                )}
-              </div>
-            </div>
-            <button
-              onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-              className={cn(
-                'p-2 rounded-md transition-colors flex items-center gap-2 text-sm',
-                isHistoryOpen ? 'bg-neutral-100 text-neutral-900' : 'text-neutral-500 hover:bg-neutral-100'
-              )}
-            >
-              <History size={18} />
-              {t('header.history')}
-            </button>
-
+          </div>
+        </header>
           </div>
         </header>
 
