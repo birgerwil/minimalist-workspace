@@ -340,8 +340,12 @@ export async function generateModuleFromSpec(
   const model = "gemini-1.5-flash";
 
   const modulePrompts: Record<string, string> = {
-    plan: "Skab en detaljeret eksekveringsplan (PLAN.md) med milepæle, atomiske opgaver og verificeringstrin med klare acceptance-kriterier.",
-    architecture: "Design en teknisk arkitektur (ARCHITECTURE.md) med tech-stack, data-model, komponent-hierarki og system-flow.",
+    plan: `Skab en detaljeret eksekveringsplan (PLAN.md) med milepæle, atomiske opgaver og verificeringstrin. 
+      VIGTIGT (Fast Start Rule): Scope altid projektet som et 'Fast Start' MVP uanset hvor ambitiøst det er. 
+      Tilføj en sektion i bunden kaldet '## ⚠️ Fremtidige Skalerings-krav (Til The Observer)', hvor du lister arkitektonisk og funktionel kompleksitet (f.eks. Omni-channel, Avanceret Auth), som er skubbet til senere faser.`,
+    architecture: `Design en teknisk arkitektur (ARCHITECTURE.md) med tech-stack, data-model, komponent-hierarki og system-flow for en MVP.
+      VIGTIGT (The Low Confidence Rule): Hvis visionen kræver kompleks skalering, men iværksætteren ikke har angivet en specifik tech-stack for dette, må du IKKE opfinde én med høj sikkerhed (Low Confidence). 
+      Du SKAL i stedet foreslå et fundament og oprette en sektion i bunden kaldet '## ⚠️ Uafklarede Arkitektur-Flag (Til The Observer)', hvor du oplister de strategiske beslutninger (f.eks. valg af app-framework), der afventer afklaring.`,
     state: "Definer en proces-kontinuitet og beslutnings-log (STATE.md) for at sikre kontekst-bevarelse på tværs af AI-sessioner.",
     agents: `Skab en præcis AGENTS.md med disse krav:
       - AGENTER skal have KONKRETE tools, CLI-kommandoer og fil-referencer — IKKE generiske rollebeskrivelser
@@ -365,10 +369,9 @@ export async function generateModuleFromSpec(
       - Output-protokol med UX_CHECK trin`,
   };
 
-  // Agents and rules get the full UX context injected
-  const uxAwareTypes = ['agents', 'rules'];
-  const uxContext = (uxAwareTypes.includes(type) && wizardContext)
-    ? `\n\nKONTEKST FRA WIZARD (inkl. UX & designprincipper):\n${wizardContext}`
+  // Inject the full context (Wizard choices: Platform, SDK, Cloud Provider) into all modules
+  const uxContext = wizardContext
+    ? `\n\nKONTEKST FRA WIZARD (inkl. Arkitektur & UI/UX valg):\n${wizardContext}`
     : '';
 
   const systemInstruction = `Du er en Senior AI Architect & System Designer.

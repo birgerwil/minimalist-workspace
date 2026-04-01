@@ -78,9 +78,18 @@ export const TEMPO_OPTIONS = {
   },
 } as const;
 
+export const CLOUD_OPTIONS = {
+  aws: { label: 'AWS', icon: '☁️', description: 'Amazon Web Services (Fx Amplify, Cognito, DynamoDB)' },
+  gcp: { label: 'Google Cloud Platform', icon: '🔥', description: 'GCP / Firebase (Auth, Firestore, Functions)' },
+  azure: { label: 'Microsoft Azure', icon: '🏢', description: 'Azure (Entra ID, CosmosDB, App Services)' },
+  paas: { label: 'PaaS', icon: '⚡', description: 'Supabase/Vercel/Netlify — Serverless, let opsætning' },
+  none: { label: 'Ikke besluttet', icon: '❓', description: 'Lad AI foreslå det bedste match til visionen' },
+} as const;
+
 export type PlatformKey = keyof typeof PLATFORM_OPTIONS;
 export type ScaleKey = keyof typeof SCALE_OPTIONS;
 export type TempoKey = keyof typeof TEMPO_OPTIONS;
+export type CloudKey = keyof typeof CLOUD_OPTIONS;
 
 // ─── UI Design Philosophy ─────────────────────────────────────────────────────
 
@@ -209,6 +218,7 @@ export interface WizardPreferences {
   platforms: PlatformKey[];   // ← multi-select (was: platform: PlatformKey | null)
   scale: ScaleKey | null;
   tempo: TempoKey | null;
+  cloudProvider: CloudKey | null;
   uiPhilosophy: UIPhilosophyKey | null;   // ← design philosophy (optional)
   customStack: string;
 }
@@ -284,6 +294,7 @@ export function useWizard(): UseWizardReturn {
     platforms: [],
     scale: null,
     tempo: null,
+    cloudProvider: null,
     uiPhilosophy: null,
     customStack: '',
   });
@@ -398,6 +409,7 @@ export function useWizard(): UseWizardReturn {
     const selectedPlatforms = preferences.platforms.map((p) => PLATFORM_OPTIONS[p]);
     const scale = preferences.scale ? SCALE_OPTIONS[preferences.scale] : null;
     const tempo = preferences.tempo ? TEMPO_OPTIONS[preferences.tempo] : null;
+    const cloud = preferences.cloudProvider && preferences.cloudProvider !== 'none' ? CLOUD_OPTIONS[preferences.cloudProvider] : null;
 
     // Build platform-specific agent notes for multi-platform scenarios
     const platformDetails = selectedPlatforms.map((p) =>
@@ -430,6 +442,7 @@ ${multiPlatformWarning}
 BRUGERSKALA: ${scale?.label ?? 'Ikke specificeret'} — ${scale?.description ?? ''}
 
 UDVIKLINGSTEMPO: ${tempo?.label ?? 'Ikke specificeret'} — ${tempo?.description ?? ''}
+CLOUD & INFRASTRUKTUR: ${cloud ? `${cloud.label} — ${cloud.description}` : 'Lad AI foreslå ud fra vision og skala'}
 ${preferences.customStack ? `\nSPECIFIKT STACK-ØNSKE FRA BRUGER: ${preferences.customStack}` : ''}
 
 ${(() => {
@@ -541,14 +554,14 @@ DESIGN SYSTEM CONSTRAINTS:
       'spec'
     );
 
-    // 2–6: modules from SPEC — agents and rules get full UX context
+    // 2–6: modules from SPEC — inject full context globally
     if (spec) {
       await run('rules',  () => generateModuleFromSpec('rules',        spec, projectName, thinkingLevel as any, contextPrompt), 'rules');
-      await run('arch',   () => generateModuleFromSpec('architecture', spec, projectName, thinkingLevel as any), 'architecture');
-      await run('plan',   () => generateModuleFromSpec('plan',         spec, projectName, thinkingLevel as any), 'plan');
+      await run('arch',   () => generateModuleFromSpec('architecture', spec, projectName, thinkingLevel as any, contextPrompt), 'architecture');
+      await run('plan',   () => generateModuleFromSpec('plan',         spec, projectName, thinkingLevel as any, contextPrompt), 'plan');
       await run('agents', () => generateModuleFromSpec('agents',       spec, projectName, thinkingLevel as any, contextPrompt), 'agents');
-      await run('test',   () => generateModuleFromSpec('testing',      spec, projectName, thinkingLevel as any), 'testing');
-      await run('state',  () => generateModuleFromSpec('state',        spec, projectName, thinkingLevel as any), 'state');
+      await run('test',   () => generateModuleFromSpec('testing',      spec, projectName, thinkingLevel as any, contextPrompt), 'testing');
+      await run('state',  () => generateModuleFromSpec('state',        spec, projectName, thinkingLevel as any, contextPrompt), 'state');
     }
 
     // 7. DESIGN.md — conditioned on philosophy choice (gracefully skips if none)

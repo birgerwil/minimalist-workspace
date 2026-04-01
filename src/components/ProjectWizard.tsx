@@ -19,12 +19,14 @@ import {
   PLATFORM_OPTIONS,
   SCALE_OPTIONS,
   TEMPO_OPTIONS,
+  CLOUD_OPTIONS,
   UI_PHILOSOPHY_OPTIONS,
   MUST_FLAG_SUGGESTIONS,
   NEVER_FLAG_SUGGESTIONS,
   PlatformKey,
   ScaleKey,
   TempoKey,
+  CloudKey,
   UIPhilosophyKey,
 } from '../hooks/useWizard';
 
@@ -308,6 +310,42 @@ function Step2Preferences({
               className="p-3 bg-neutral-50 rounded-xl border border-neutral-100 text-sm text-neutral-600 leading-relaxed"
             >
               {t(`wizard.options.scale.${preferences.scale}.desc`)}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Cloud Provider */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">Cloud & Infrastruktur</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {(Object.entries(CLOUD_OPTIONS) as [CloudKey, (typeof CLOUD_OPTIONS)[CloudKey]][]).map(([key, opt]) => (
+            <button
+              key={key}
+              onClick={() => setPreference('cloudProvider', key)}
+              className={cn(
+                'p-4 rounded-xl border text-left transition-all',
+                preferences.cloudProvider === key
+                  ? 'border-neutral-900 bg-neutral-900 text-white'
+                  : 'border-neutral-200 hover:border-neutral-400 bg-white'
+              )}
+            >
+              <span className="text-xl">{opt.icon}</span>
+              <p className={cn('text-sm font-semibold mt-2', preferences.cloudProvider === key ? 'text-white' : 'text-neutral-900')}>
+                {opt.label}
+              </p>
+            </button>
+          ))}
+        </div>
+        <AnimatePresence>
+          {preferences.cloudProvider && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="p-3 bg-neutral-50 rounded-xl border border-neutral-100 text-sm text-neutral-600 leading-relaxed"
+            >
+              {CLOUD_OPTIONS[preferences.cloudProvider].description}
             </motion.div>
           )}
         </AnimatePresence>
@@ -794,6 +832,20 @@ function Step4Generate({
         <p className="text-sm text-neutral-500">
           {t('wizard.step4.desc')}
         </p>
+      </div>
+
+      {/* Fast Start PO Disclaimer */}
+      <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 flex items-start gap-3">
+        <Sparkles size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+        <div className="space-y-1">
+          <p className="text-sm font-bold text-amber-800 uppercase tracking-widest">
+            The Fast Start Rule
+          </p>
+          <p className="text-sm text-amber-700/80 leading-relaxed">
+            Dette værktøj genererer et stærkt MVP-fundament for at give dig en lynhurtig start, men bygger ikke et færdigt enterprise-system. 
+            Hvor arkitekturen eller ambitionen er for stor, skrive-låser AI'en sig ikke. I stedet bliver det markeret direkte i koden med <strong>⚠️ Uafklarede Flag</strong> til dig og The Observer.
+          </p>
+        </div>
       </div>
 
       {/* Order summary card */}
