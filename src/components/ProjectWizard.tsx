@@ -86,7 +86,7 @@ function StepIndicator({ current }: { current: number }) {
 
 // ─── Consequence card ──────────────────────────────────────────────────────────
 
-function ConsequenceCard({ label, pros, cons, stack }: { label?: string; pros: string[]; cons: string[]; stack: string }) {
+function ConsequenceCard({ label, pros, cons, stack }: { label?: string; pros: readonly string[]; cons: readonly string[]; stack: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -265,15 +265,18 @@ function Step2Preferences({
               exit={{ opacity: 0 }}
               className="space-y-2"
             >
-              {preferences.platforms.map((p) => (
-                <ConsequenceCard
-                  key={p}
-                  label={t(`wizard.options.platforms.${p}.label`)}
-                  pros={t(`wizard.options.platforms.${p}.pros`) as any}
-                  cons={t(`wizard.options.platforms.${p}.cons`) as any}
-                  stack={PLATFORM_OPTIONS[p].stack}
-                />
-              ))}
+              {preferences.platforms.map((p) => {
+                const opt = PLATFORM_OPTIONS[p];
+                return (
+                  <ConsequenceCard
+                    key={p}
+                    label={opt.label}
+                    pros={opt.pros}
+                    cons={opt.cons}
+                    stack={opt.stack}
+                  />
+                );
+              })}
             </motion.div>
           )}
         </AnimatePresence>
