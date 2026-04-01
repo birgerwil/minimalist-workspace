@@ -183,8 +183,17 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    // Cache static assets (JS/CSS) but NOT index.html
+    app.use(express.static(distPath, {
+      maxAge: '1d',
+      index: false
+    }));
+
     app.get('*', (req, res) => {
+      // Force no-cache for the entry point
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

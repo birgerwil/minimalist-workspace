@@ -161,26 +161,32 @@ export function ProjectSidebar({
 
 
       {/* User footer */}
-      <div className="p-4 border-t border-neutral-200 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-3">
-          {user.photoURL && (
-            <img
-              src={user.photoURL}
-              alt={user.displayName || t('common.loading')}
-              className="w-8 h-8 rounded-full border border-neutral-200"
-            />
-          )}
-          <div className="text-sm">
-            <p className="font-medium truncate max-w-[120px] text-neutral-900">
-              {user.displayName}
-            </p>
-            <button
-              onClick={onLogout}
-              className="text-neutral-500 hover:text-neutral-700 transition-colors"
-            >
-              {t('auth.logout')}
-            </button>
+      <div className="p-4 border-t border-neutral-200 flex flex-col gap-4 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {user.photoURL && (
+              <img
+                src={user.photoURL}
+                alt={user.displayName || t('common.loading')}
+                className="w-8 h-8 rounded-full border border-neutral-200"
+              />
+            )}
+            <div className="text-sm">
+              <p className="font-medium truncate max-w-[120px] text-neutral-900">
+                {user.displayName}
+              </p>
+              <button
+                onClick={onLogout}
+                className="text-neutral-500 hover:text-neutral-700 transition-colors"
+              >
+                {t('auth.logout')}
+              </button>
+            </div>
           </div>
+        </div>
+        <div className="px-1 flex items-center justify-between opacity-30 group-hover:opacity-100 transition-opacity">
+          <span className="text-[10px] font-medium tracking-wider text-neutral-400">v2.1.0</span>
+          <span className="text-[10px] font-medium tracking-wider text-neutral-400 uppercase">Production Ready</span>
         </div>
       </div>
     </motion.aside>

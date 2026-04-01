@@ -7,11 +7,15 @@ export function useApiKey() {
   useEffect(() => {
     async function checkKeys() {
       try {
+        console.log("[useApiKey] 🔍 Fetching server config...");
         // 1. Tjek om serveren har en system-nøgle (Proxy-mode)
         const res = await fetch('/api/config');
         const config = await res.json();
         
+        console.log("[useApiKey] 🛰️ Server Config:", config);
+
         if (config.hasSystemKey) {
+          console.log("[useApiKey] ✅ Server has system key. Bypassing local prompt.");
           setHasKey(true);
           setIsLoading(false);
           return;
