@@ -14,8 +14,14 @@ async function startServer() {
   app.use(express.json());
 
   // ─── Gemini AI Proxy (Architectural Pivot) ────────────────────────────────
-  const GENAI_API_KEY = process.env.GEMINI_API_KEY;
+  const GENAI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
   const genAI = GENAI_API_KEY ? new GoogleGenAI({ apiKey: GENAI_API_KEY }) : null;
+
+  if (genAI) {
+    console.log("[server] ✅ Gemini AI Proxy initialized (System Key found)");
+  } else {
+    console.warn("[server] ⚠️ Gemini AI Proxy: No API Key found in environment variables");
+  }
 
   // Config endpoint for frontend discovery
   app.get("/api/config", (_req, res) => {
