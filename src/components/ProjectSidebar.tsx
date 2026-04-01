@@ -184,9 +184,9 @@ export function ProjectSidebar({
             </div>
           </div>
         </div>
-        <div className="px-1 flex items-center justify-between opacity-30 group-hover:opacity-100 transition-opacity">
-          <span className="text-[10px] font-medium tracking-wider text-neutral-400">v2.1.0</span>
-          <span className="text-[10px] font-medium tracking-wider text-neutral-400 uppercase">Production Ready</span>
+        <div className="px-1 flex items-center justify-between group-hover:opacity-100 transition-opacity">
+          <span className="text-sm font-medium tracking-wider text-neutral-600">v2.1.1</span>
+          <span className="text-sm font-medium tracking-wider text-neutral-600 uppercase">Production Ready</span>
         </div>
       </div>
     </motion.aside>

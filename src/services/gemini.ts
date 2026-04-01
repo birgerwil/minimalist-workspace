@@ -11,7 +11,7 @@ async function callServerAi(payload: {
     thinkingConfig?: { thinkingLevel: string };
   };
 }) {
-  const res = await fetch('/api/ai/genai', {
+  const res = await fetch('/api/ai/proxy', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

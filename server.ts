@@ -32,8 +32,9 @@ async function startServer() {
   });
 
   // AI Proxy endpoint
-  app.post("/api/ai/genai", async (req, res) => {
+  app.post("/api/ai/proxy", async (req, res) => {
     if (!genAI) {
+      console.error("[server] ❌ AI Proxy failed: GoogleGenAI not initialized. Check your GEMINI_API_KEY.");
       return res.status(503).json({ error: "Gemini API key not configured on server" });
     }
 
@@ -43,7 +44,6 @@ async function startServer() {
     }
 
     try {
-      if (!genAI) throw new Error("genAI not initialized");
       const model = (genAI as any).getGenerativeModel({ 
         model: modelName,
         systemInstruction: config?.systemInstruction,
@@ -59,14 +59,13 @@ async function startServer() {
       const response = await result.response;
       res.json({ text: response.text() });
     } catch (error: any) {
-      console.error("[server] AI Proxy Error:", error);
+      console.error("[server] ❌ AI Proxy Error:", error.message || error);
       res.status(500).json({ 
         error: "AI Generation failed", 
         details: error.message 
       });
     }
   });
-
   // ─── Docs file whitelist ───────────────────────────────────────────────────
   // All readable/writable project documentation files.
   const DOCS_FILES: Record<string, string> = {

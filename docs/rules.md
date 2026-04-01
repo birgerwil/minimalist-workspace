@@ -30,6 +30,8 @@ Garanteret persistens. Ingen data må gå tabt under nogen omstændigheder.
 
 **P3: DESIGN_DOGME**
 Minimal Chrome, radikal enkelhed, ingen unødig visuel støj.
+- **FORBUDT**: Brug aldrig skriftstørrelser under 14px (`text-sm`).
+- **KRAV**: Alle metadata og sekundære tekster skal have min. `text-neutral-600` for læsbarhed og kontrast.
 
 **P3.5: LEAN FIRST**
 Den simpleste løsning der virker er altid den rigtige løsning.
