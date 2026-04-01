@@ -2,12 +2,64 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import fs from "fs/promises";
+import { GoogleGenAI } from "@google/genai";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
   app.use(express.json());
+
+  // ─── Gemini AI Proxy (Architectural Pivot) ────────────────────────────────
+  const GENAI_API_KEY = process.env.GEMINI_API_KEY;
+  const genAI = GENAI_API_KEY ? new GoogleGenAI({ apiKey: GENAI_API_KEY }) : null;
+
+  // Config endpoint for frontend discovery
+  app.get("/api/config", (_req, res) => {
+    res.json({
+      hasSystemKey: !!GENAI_API_KEY,
+      env: process.env.NODE_ENV || 'development'
+    });
+  });
+
+  // AI Proxy endpoint
+  app.post("/api/ai/genai", async (req, res) => {
+    if (!genAI) {
+      return res.status(503).json({ error: "Gemini API key not configured on server" });
+    }
+
+    const { model: modelName, contents, config } = req.body;
+    if (!modelName || !contents) {
+      return res.status(400).json({ error: "Missing model or contents" });
+    }
+
+    try {
+      if (!genAI) throw new Error("genAI not initialized");
+      const model = (genAI as any).getGenerativeModel({ 
+        model: modelName,
+        systemInstruction: config?.systemInstruction,
+        generationConfig: config?.generationConfig,
+      });
+
+      // Special handling for thinkingConfig if present (Gemini 2.0 Thinking)
+      const result = await model.generateContent({
+        contents,
+        ...(config?.thinkingConfig ? { thinkingConfig: config.thinkingConfig } : {})
+      });
+
+      const response = await result.response;
+      res.json({ text: response.text() });
+    } catch (error: any) {
+      console.error("[server] AI Proxy Error:", error);
+      res.status(500).json({ 
+        error: "AI Generation failed", 
+        details: error.message 
+      });
+    }
+  });
 
   // ─── Docs file whitelist ───────────────────────────────────────────────────
   // All readable/writable project documentation files.

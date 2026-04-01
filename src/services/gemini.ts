@@ -1,22 +1,32 @@
-import { GoogleGenAI, ThinkingLevel } from "@google/genai";
-
 import { TabType, ThinkingLevel as AppThinkingLevel } from '../types';
 
-// Lazy initialization — avoids crash at module load if API key is undefined in browser
-function getClient(): GoogleGenAI {
-  // 1. Tjek LocalStorage (fra UI onboarding)
-  // 2. Vite injects VITE_* vars via import.meta.env
-  // 3. Express/Node bruger process.env
-  const apiKey = 
-    localStorage.getItem('GEMINI_API_KEY') ?? 
-    (import.meta as any).env?.VITE_GEMINI_API_KEY ?? 
-    (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : null);
-    
-  if (!apiKey) {
-    throw new Error('Gemini API-nøgle mangler. Indtast den i UI, eller tilføj VITE_GEMINI_API_KEY til din .env.local fil.');
+// ─── AI Proxy Helper ────────────────────────────────────────────────────────
+// This replaces direct Google SDK calls to support Server-side Proxy mode.
+async function callServerAi(payload: {
+  model: string;
+  contents: any[];
+  config?: {
+    systemInstruction?: string;
+    generationConfig?: any;
+    thinkingConfig?: { thinkingLevel: string };
+  };
+}) {
+  const res = await fetch('/api/ai/genai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'AI Proxy call failed');
   }
-  return new GoogleGenAI({ apiKey });
+
+  const data = await res.json();
+  return { text: data.text };
 }
+
+// ─── Workbench ──────────────────────────────────────────────────────────────
 
 export async function getImprovementSuggestions(
   type: TabType,
@@ -47,12 +57,12 @@ ${content}
 ---
 Giv mig 3-5 konkrete forbedringsforslag og en revideret version af teksten.`;
 
-  const response = await getClient().models.generateContent({
+  const response = await callServerAi({
     model,
-    contents: prompt,
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
     config: { 
       systemInstruction,
-      thinkingConfig: { thinkingLevel: thinkingLevel as unknown as ThinkingLevel }
+      thinkingConfig: { thinkingLevel: thinkingLevel as string }
     },
   });
 
@@ -71,7 +81,7 @@ export async function getPolishedFlag(
     ? `Du er en senior software arkitekt. Omformulér dette SKAL-krav til ét skarpt, konkret teknisk princip på ${langName} (maks 10 ord, ingen punktum til sidst). Returner kun den omformulerede tekst.`
     : `Du er en senior software arkitekt. Omformulér dette ALDRIG-forbud til ét skarpt, konkret teknisk forbud på ${langName} (maks 10 ord, ingen punktum til sidst). Returner kun den omformulerede tekst.`;
 
-  const response = await getClient().models.generateContent({
+  const response = await callServerAi({
     model,
     contents: [{ role: 'user', parts: [{ text }] }],
     config: { systemInstruction },
@@ -133,12 +143,12 @@ ${vision}
 
 Analyser visionen og stil de mest kritiske afklarende spørgsmål.`;
 
-  const response = await getClient().models.generateContent({
+  const response = await callServerAi({
     model,
-    contents: prompt,
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
     config: {
       systemInstruction,
-      thinkingConfig: { thinkingLevel: thinkingLevel as unknown as ThinkingLevel },
+      thinkingConfig: { thinkingLevel: thinkingLevel as string },
     },
   });
 
@@ -221,12 +231,12 @@ Strukturér DESIGN.md præcis sådan (brug markdown headers):
 
 Vær PRÆCIS og KONKRET. Undgå generiske designråd. Alt skal være specifikt for ${philosophyLabel}-filosofien.`;
 
-  const response = await getClient().models.generateContent({
+  const response = await callServerAi({
     model,
-    contents: contextPrompt,
+    contents: [{ role: 'user', parts: [{ text: contextPrompt }] }],
     config: {
       systemInstruction,
-      thinkingConfig: { thinkingLevel: thinkingLevel as unknown as ThinkingLevel },
+      thinkingConfig: { thinkingLevel: thinkingLevel as string },
     },
   });
 
@@ -265,12 +275,12 @@ export async function generateSpecFromVision(
     
     Generer en komplet SPEC.md baseret på ovenstående vision.`;
 
-  const response = await getClient().models.generateContent({
+  const response = await callServerAi({
     model,
-    contents: prompt,
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
     config: { 
       systemInstruction,
-      thinkingConfig: { thinkingLevel: thinkingLevel as unknown as ThinkingLevel }
+      thinkingConfig: { thinkingLevel: thinkingLevel as string }
     },
   });
 
@@ -308,12 +318,12 @@ export async function updateSpecFromVision(
     
     Opdater SPEC.md så den inkluderer de nye input.`;
 
-  const response = await getClient().models.generateContent({
+  const response = await callServerAi({
     model,
-    contents: prompt,
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
     config: { 
       systemInstruction,
-      thinkingConfig: { thinkingLevel: thinkingLevel as unknown as ThinkingLevel }
+      thinkingConfig: { thinkingLevel: thinkingLevel as string }
     },
   });
 
@@ -385,18 +395,17 @@ ${uxContext}
 
 Generer den komplette ${type} fil.`;
 
-  const response = await getClient().models.generateContent({
+  const response = await callServerAi({
     model,
-    contents: prompt,
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
     config: {
       systemInstruction,
-      thinkingConfig: { thinkingLevel: thinkingLevel as unknown as ThinkingLevel }
+      thinkingConfig: { thinkingLevel: thinkingLevel as string }
     },
   });
 
   return response.text;
 }
-
 
 export async function updateModuleFromSpec(
   type: TabType,
@@ -426,12 +435,12 @@ export async function updateModuleFromSpec(
     
     Opdater ${type} så den er i fuld overensstemmelse med SPEC.md fundamentet.`;
 
-  const response = await getClient().models.generateContent({
+  const response = await callServerAi({
     model,
-    contents: prompt,
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
     config: { 
       systemInstruction,
-      thinkingConfig: { thinkingLevel: thinkingLevel as unknown as ThinkingLevel }
+      thinkingConfig: { thinkingLevel: thinkingLevel as string }
     },
   });
 
@@ -464,12 +473,12 @@ export async function getWorkbenchGuide(thinkingLevel: AppThinkingLevel = AppThi
   
   Brug en professionel tone. Svar på dansk.`;
 
-  const response = await getClient().models.generateContent({
+  const response = await callServerAi({
     model,
-    contents: prompt,
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
     config: { 
       systemInstruction,
-      thinkingConfig: { thinkingLevel: thinkingLevel as unknown as ThinkingLevel }
+      thinkingConfig: { thinkingLevel: thinkingLevel as string }
     },
   });
 
@@ -552,12 +561,12 @@ Svar KUN med JSON.`;
   const prompt = `Projekt: ${projectName}\n\n${filesSummary}\n\nGennemgå disse filer og returner JSON-kritik.`;
 
   try {
-    const response = await getClient().models.generateContent({
+    const response = await callServerAi({
       model,
-      contents: prompt,
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: {
         systemInstruction,
-        thinkingConfig: { thinkingLevel: 'MEDIUM' as unknown as ThinkingLevel },
+        thinkingConfig: { thinkingLevel: 'MEDIUM' },
       },
     });
 
@@ -640,12 +649,12 @@ ${currentFiles}
 Returner opdaterede filer som JSON.`;
 
   try {
-    const response = await getClient().models.generateContent({
+    const response = await callServerAi({
       model,
-      contents: prompt,
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: {
         systemInstruction,
-        thinkingConfig: { thinkingLevel: 'HIGH' as unknown as ThinkingLevel },
+        thinkingConfig: { thinkingLevel: 'HIGH' },
       },
     });
 

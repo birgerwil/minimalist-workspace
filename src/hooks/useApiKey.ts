@@ -5,22 +5,41 @@ export function useApiKey() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Tjek først miljø-variabler (hardcoded / deployment)
-    const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY ?? 
-                   (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : null);
-                   
-    if (envKey) {
-      setHasKey(true);
-      setIsLoading(false);
-      return;
+    async function checkKeys() {
+      try {
+        // 1. Tjek om serveren har en system-nøgle (Proxy-mode)
+        const res = await fetch('/api/config');
+        const config = await res.json();
+        
+        if (config.hasSystemKey) {
+          setHasKey(true);
+          setIsLoading(false);
+          return;
+        }
+
+        // 2. Tjek miljø-variabler (hardcoded / build-time)
+        const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY ?? 
+                       (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : null);
+                       
+        if (envKey) {
+          setHasKey(true);
+          setIsLoading(false);
+          return;
+        }
+
+        // 3. Tjek localStorage fallback (user provided / BYOK)
+        const localKey = localStorage.getItem('GEMINI_API_KEY');
+        if (localKey) {
+          setHasKey(true);
+        }
+      } catch (err) {
+        console.error("Failed to check server config:", err);
+      } finally {
+        setIsLoading(false);
+      }
     }
 
-    // Tjek localStorage fallback (user provided)
-    const localKey = localStorage.getItem('GEMINI_API_KEY');
-    if (localKey) {
-      setHasKey(true);
-    }
-    setIsLoading(false);
+    checkKeys();
   }, []);
 
   const saveKey = (key: string) => {
