@@ -6,16 +6,20 @@ import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json());
 
   // ─── Gemini AI Proxy (Architectural Pivot) ────────────────────────────────
   const GENAI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
-  const genAI = GENAI_API_KEY ? new GoogleGenAI({ apiKey: GENAI_API_KEY }) : null;
+  const genAI = GENAI_API_KEY ? new GoogleGenAI({ 
+    apiKey: GENAI_API_KEY,
+    apiVersion: 'v1'
+  }) : null;
 
   if (genAI) {
     console.log("[server] ✅ Gemini AI Proxy initialized (System Key found)");
@@ -44,20 +48,28 @@ async function startServer() {
     }
 
     try {
-      const model = (genAI as any).getGenerativeModel({ 
-        model: modelName,
-        systemInstruction: config?.systemInstruction,
-        generationConfig: config?.generationConfig,
+      // Use v1beta for maximum compatibility with gemini-1.5-flash and thinking models
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GENAI_API_KEY}`;
+      
+      const resAi = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents,
+          systemInstruction: config?.systemInstruction ? { parts: [{ text: config.systemInstruction }] } : undefined,
+          generationConfig: config?.generationConfig,
+          ...(config?.thinkingConfig ? { thinkingConfig: config.thinkingConfig } : {})
+        })
       });
 
-      // Special handling for thinkingConfig if present (Gemini 2.0 Thinking)
-      const result = await model.generateContent({
-        contents,
-        ...(config?.thinkingConfig ? { thinkingConfig: config.thinkingConfig } : {})
-      });
+      if (!resAi.ok) {
+        const errData = await resAi.json();
+        throw new Error(errData.error?.message || `Gemini API error: ${resAi.status}`);
+      }
 
-      const response = await result.response;
-      res.json({ text: response.text() });
+      const dataAi = await resAi.json();
+      const textOutput = dataAi.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      res.json({ text: textOutput });
     } catch (error: any) {
       console.error("[server] ❌ AI Proxy Error:", error.message || error);
       res.status(500).json({ 
