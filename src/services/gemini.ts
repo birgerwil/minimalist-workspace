@@ -347,26 +347,29 @@ export async function generateModuleFromSpec(
       VIGTIGT (The Low Confidence Rule): Hvis visionen kræver kompleks skalering, men iværksætteren ikke har angivet en specifik tech-stack for dette, må du IKKE opfinde én med høj sikkerhed (Low Confidence). 
       Du SKAL i stedet foreslå et fundament og oprette en sektion i bunden kaldet '## ⚠️ Uafklarede Arkitektur-Flag (Til The Observer)', hvor du oplister de strategiske beslutninger (f.eks. valg af app-framework), der afventer afklaring.`,
     state: "Definer en proces-kontinuitet og beslutnings-log (STATE.md) for at sikre kontekst-bevarelse på tværs af AI-sessioner.",
-    agents: `Skab en præcis AGENTS.md med disse krav:
-      - AGENTER skal have KONKRETE tools, CLI-kommandoer og fil-referencer — IKKE generiske rollebeskrivelser
-      - Inkludér eksplicit Thinking Tier pr. agent: HIGH for arkitektur, MEDIUM for features, LOW for styling
-      - Inkludér de 5 Causal Anchors (CA-01 til CA-05) som absolutte regler
-      - Inkludér UX-principper: Smart Routing (returbruger → status, ny → wizard), 
-        Handlingsorienteret Status-hierarki, Progressiv Afsløring (3 niveauer),
-        og Anti-Minimization Mandat (ingen kodeudeladelser for kortfattethed)
-      - Inkludér UX Flow Checklist som verifikations-tjekliste i UX_CHECK-sektionen`,
+    agents: `Design et hiarkisk Wayfinding-system (AGENTS.md) baseret på 'Agent Engineering 101':
+      - Opret en central AGENTS.md i roden (Trail Marker), der svarer på: Hvor er jeg? Hvad er dette? Hvad læser jeg næste gang?
+      - Skitsér placeringen af sekundære waypoints (f.eks. i src/ eller .agents/).
+      - AGENTER skal have KONKRETE tools, CLI-kommandoer og fil-referencer — IKKE generiske rollebeskrivelser.
+      - Inkludér de 5 Causal Anchors (CA-01 til CA-05) som absolutte regler.
+      - Inkludér UX-principper: Smart Routing, Handlingsorienteret Status-hierarki og Anti-Minimization Mandat.
+      - Integrer UX Flow Checklist som verifikations-tjekliste i UX_CHECK-sektionen.`,
     testing: "Skab en test-strategi med TDD-workflow og specifikke test-cases baseret på succes-kriterierne i SPEC.md.",
-    skills: "Skab en SKILL.md fil med kodeopskrifter, patterns og design-tokens, der er KRAV for at indfri visionen. Dette er IKKE generiske AI-Tuner skills, men de specifikke tekniske skills forfatteren får brug for til DETTE projekt.",
-    llms: "Skab en kortfattet llms.txt oversigt (max 2KB) over projektet til maskinlæsning af AI-agenter.",
-    rules: `Skab rules.md med:
-      - Klar rolledefinition og formål
-      - Prioritets-hierarki P1–P5 (USER_GOAL er altid P1)
-      - Anti-Minimization Mandat (uddybet eksplicit)
-      - Thinking Tiers tabel (MINIMAL/LOW/MEDIUM/HIGH med eksempler)
-      - Causal Anchors tabel (CA-01 til CA-05 tilpasset dette projekt)
-      - Kodekonventioner specifikt for valgt stack
-      - Design-principper: 8pt grid, semantiske farver, Minimal Chrome
-      - Output-protokol med UX_CHECK trin`,
+    skills: `Design et sæt on-demand playbooks placeret i mapper (.agents/skills/<navn>/SKILL.md):
+      - Hver skill SKAL have en 'Thinking Policy' tabel (Minimal/Low/Medium/High).
+      - Skills skal være specifikt målrettet dette projekts tekniske udfordringer (patterns, API-integrationer, design-tokens).
+      - Inkludér instrukser til hvordan agenten "loader" disse færdigheder ved behov.`,
+    llms: "Skab en llms.txt (max 2KB), der fungerer som det første 'Bearings-tjek' for AI-agenter. Den skal guide agenterne mod de relevante AGENTS.md waypoints i det hiarkiske layout.",
+    rules: `Skab rules.md med de centrale "Ground Truth" regler:
+      - Prioritets-hierarki P1–P5 (USER_GOAL er altid P1).
+      - Anti-Minimization Mandat (ingen udeladelse af kode for kortfattethed).
+      - Thinking Tiers tabel:
+        * MINIMAL: Simple tekst/style rettelser.
+        * LOW: Mindre logik-fix.
+        * MEDIUM: Standard feature-udvikling.
+        * HIGH: Arkitektur, sikkerhed og kritiske systemændringer.
+      - Causal Anchors tabel (CA-01 til CA-05).
+      - Design-principper: 8pt grid, Minimal Chrome, Interaction Fluency.`,
   };
 
   // Inject the full context (Wizard choices: Platform, SDK, Cloud Provider) into all modules

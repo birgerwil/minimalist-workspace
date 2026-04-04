@@ -1,98 +1,80 @@
-# AWS Server Administration
+# AWS Server Administration (Persistence-First)
 
 **Projekt Github:** [birgerwil/minimalist-workspace](https://github.com/birgerwil/minimalist-workspace)
 **Live URL:** [http://13.51.242.239](http://13.51.242.239) (Kun HTTP)
 
-Denne guide indeholder de mest brugte kommandoer til at vedligeholde og opdatere din AI Tuner Workbench på AWS.
+Denne guide er skrevet ud fra princippet om **"Persistence-by-Design"**. Det betyder, at serveren kører uafhængigt af din login-session via PM2, så applikationen aldrig stopper, selvom du lukker din PowerShell.
+
+---
 
 ## 1. Login (PowerShell)
-Åbn PowerShell på din Windows-maskine og kør følgende (husk at stå i mappen med din `.pem` fil):
-
+Husk at stå i mappen med din `.pem` fil:
 ```powershell
-# cd C:\Users\birge\AI
 ssh -i "C:\Users\birge\AI\tuner-key.pem" ubuntu@13.51.242.239
 ```
 
 ---
 
-## 2. Opdater Appen (Workflow)
-Hver gang du har lavet ændringer i koden lokalt og pushed til Github, skal du køre dette på serveren:
+## 2. Standard Workflow: Opdatering & Deploy
+Hver gang du har pushet ny kode til Github, skal du køre følgende på serveren. Bemærk at vi bruger `pm2` til at håndtere kørslen autonomt.
 
 ```bash
-# Gå ind i projektmappen (hvis du ikke allerede er der)
 cd ~/minimalist-workspace
 
-# Hent den nye kode
+# 1. Synkroniser med Github
 git pull
 
-# Tjek .env (KRITISK: Mangler der variabler efter opdatering?)
-nano .env # (Tjek at VITE_FIREBASE_* er der)
+# 2. Vedligeholdelse (hvis nødvendigt)
+npm install         # Kun hvis package.json er ændret
+npm run build       # KRITISK: Bygger de nye filer til Nginx
 
-# Installer nye pakker (kun nødvendigt hvis package.json er ændret)
-npm install
-
-# BYG APPEN (Dette trin er det vigtigste for at se ændringerne i browseren)
-npm run build
-
-# Genstart selve kørslen
+# 3. Persistence Update
+# Dette genstarter processen i baggrunden, uafhængigt af din session
 pm2 restart tuner-app
 ```
 
+> [!TIP]
+> Hvis appen slet ikke er startet endnu, bruges:
+> `pm2 start server.ts --name "tuner-app" --interpreter tsx`
+
 ---
 
-## 3. Status & Fejlfinding
-Hvis siden viser "Not Found" eller appen driller:
+## 3. Status & Overvågning
+Da serveren kører uafhængigt i baggrunden, bruger du disse kommandoer til at "kigge ind" i maskinrummet:
 
 | Kommando | Beskrivelse |
 | :--- | :--- |
-| `pm2 status` | Se om appen (`tuner-app`) er "online" |
-| `pm2 logs tuner-app` | Se de seneste fejlbeskeder fra appen |
-| `pm2 restart tuner-app` | Genstart applikationen |
-| `sudo systemctl restart nginx` | Genstart selve web-portvakten (Nginx) |
+| `pm2 status` | Bekræft at `tuner-app` er "online" (grøn) |
+| `pm2 logs tuner-app` | Se fejlmeddelelser og server-output live |
+| `pm2 info tuner-app` | Se detaljer (f.eks. hvor på disken appen kører fra) |
+| `sudo systemctl restart nginx` | Genstart selve portvagten (Nginx) hvis URL'en driller |
 
 ---
 
-## 4. Hvis serveren hænger (RAM mangel)
-Hvis `npm run build` fryser, så aktiver Swap-filen (virtuel RAM) igen:
+## 4. Resource Management (RAM)
+Hvis `npm run build` fryser eller serveren føles sløv, skyldes det typisk mangel på RAM (da vi kører på en lille t3.micro). Aktivér Swap (virtuel RAM):
 ```bash
 sudo swapon /swapfile
+free -m  # Tjek om Swap nu er aktiv (> 0)
 ```
 
 ---
 
-## 5. Pro-Tip: Hurtig adgang i PowerShell (Windows)
-Hvis du vil undgå at skrive den lange sti hver gang på din PC, kan du lave en "genvej" i din PowerShell profil:
-
-1. Åbn din profil i Notesblok: `notepad $PROFILE`
-2. Indsæt denne linje: `function goai { cd C:\Users\birge\AI }`
-3. Gem og luk notesblok.
-4. Genstart PowerShell – derefter kan du bare skrive **`goai`** for at hoppe direkte til din nøgle!
+## 5. Pro-Tip: Hurtig adgang (PowerShell)
+Gør dit liv lettere ved at tilføje denne funktion til din `$PROFILE`:
+1. `notepad $PROFILE`
+2. Indsæt: `function goai { cd C:\Users\birge\AI; ssh -i "tuner-key.pem" ubuntu@13.51.242.239 }`
+3. Nu kan du bare skrive **`goai`** for at logge direkte på!
 
 ---
 
-## 6. Fejlsøgning: "No such file or directory"
-Hvis du logger ind og mappen `minimalist-workspace` er væk (eller `dir` er tom), selvom appen kører:
-
-1. **Tjek hvor appen kører fra:**
-   ```bash
-   pm2 info tuner-app
-   ```
-   (Kig efter `exec cwd` linjen).
-
-2. **Gendan mappen (hvis den er slettet):**
-   Uden mappen kan du ikke køre `git pull`. Gendan den sådan her:
-   ```bash
-   cd ~
-   git clone https://github.com/birgerwil/minimalist-workspace.git
-   cd minimalist-workspace
-   npm install
-   npm run build
-   pm2 restart tuner-app
-   ```
-
-3. **Tjek RAM (Swap):**
-   Hvis serveren føles "sløv" eller hænger ved `npm run build`:
-   ```bash
-   free -m  # Se ledig RAM
-   sudo swapon /swapfile # Aktiver ekstra RAM
-   ```
+## 6. Katastrofe-genopretning: "Hvor er min mappe?"
+Hvis mappen `minimalist-workspace` er væk, men appen stadig kører (tjek `pm2 status`), kan du gendanne kildekoden uden at stoppe sitet:
+```bash
+cd ~
+git clone https://github.com/birgerwil/minimalist-workspace.git
+cd minimalist-workspace
+npm install
+npm run build
+pm2 restart tuner-app
+```
